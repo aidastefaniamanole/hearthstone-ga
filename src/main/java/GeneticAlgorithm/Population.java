@@ -1,15 +1,20 @@
+package GeneticAlgorithm;
+
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Random;
 import java.util.stream.Collectors;
 
 public class Population {
-    Integer populationSize;
+    Integer populationSize = 10;
+    // [2-4]
+    public static final int tournamentSize = 4;
     ArrayList<Deck> members;
 
-    Double mutateP = 0.2;
+    Double mutateP = 0.1;
     Double eliteP = 0.8;
     Double randomP = 0.2;
-    Integer K;
+    Integer K = 4;
     Random rand;
 
     public Population(Integer populationSize) {
@@ -29,15 +34,36 @@ public class Population {
     public Population evolve(Evaluator evaluator) {
         Population newGeneration = new Population(this.populationSize);
 
-        // select K individuals: e * K with the highest fitness + r * K random
+        // select K individuals
+        // get e * K individuals with the highest fitness
+        members.sort(Comparator.comparing(Deck::getFitness).reversed());
+        int last = (int) (K * eliteP);
+        newGeneration.members.addAll(members.subList(0, last));
+        // get r * K random individuals to maintain diversity
+        members.subList(0, last).clear();
+        int noRandIndividuals = (int) (K * randomP);
+        for (int i = 0; i < noRandIndividuals; i++) {
+            int randI = rand.nextInt(members.size());
+            newGeneration.addOrganism(members.get(randI));
+            members.remove(randI);
+        }
 
+        ArrayList<Deck> offsprings = new ArrayList<>();
         // perform crossover for N - K individuals
 
-        // mutate p% individuals
 
-        // recompute fitness for new generation
 
-        return  newGeneration;
+        // mutate mutateP individuals
+        int toMutate = (int) (members.size() * mutateP);
+        for (int i = 0; i < toMutate; i++) {
+            int randI = rand.nextInt(members.size());
+            offsprings.add(mutate(members.get(randI)));
+        }
+
+        // recompute fitness for new members and add them to the new generation
+
+        newGeneration.members.addAll(offsprings);
+        return newGeneration;
     }
 
     /**
@@ -45,7 +71,7 @@ public class Population {
      * @param deck
      * @return
      */
-    public void mutate(Deck deck) {
+    public Deck mutate(Deck deck) {
         // chose a random card from this deck
         int index1 = rand.nextInt(Deck.deckSize);
         Card card1 = deck.cards.get(index1);
@@ -75,6 +101,8 @@ public class Population {
         if (replacement != null) {
             deck.cards.set(index1, toSwap);
         }
+
+        return deck;
     }
 
     /**
@@ -91,10 +119,11 @@ public class Population {
 
     /**
      * Select a member of the population using tournament selection
-     * @param evaluator
      * @return
      */
-    public Deck select(Evaluator evaluator) {
+    public Deck select() {
+
+
         return null;
     }
 }

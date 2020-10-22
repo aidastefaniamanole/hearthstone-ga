@@ -1,3 +1,5 @@
+package GeneticAlgorithm;
+
 import org.json.simple.JSONObject;
 
 public class Card {
