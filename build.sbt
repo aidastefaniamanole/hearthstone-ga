@@ -1,0 +1,18 @@
+name := "spark_hearthstone"
+
+version := "1.0"
+
+// Do not append Scala versions to the generated artifacts
+crossPaths := false
+
+// This forbids including Scala related libraries into the dependency
+autoScalaLibrary := false
+
+libraryDependencies ++= Seq(
+  "org.apache.spark" % "spark-core_2.11" % "2.2.1",
+  "org.apache.spark" % "spark-sql_2.11" % "2.2.1",
+  "org.apache.hbase" % "hbase-client" % "1.2.1",
+  "org.apache.hbase" % "hbase-common" % "1.2.1",
+  "com.googlecode.json-simple" % "json-simple" % "1.1.1"
+)
+
