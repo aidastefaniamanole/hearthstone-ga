@@ -14,6 +14,8 @@ libraryDependencies ++= Seq(
   "org.apache.hbase" % "hbase-client" % "1.2.1",
   "org.apache.hbase" % "hbase-common" % "1.2.1",
   "com.googlecode.json-simple" % "json-simple" % "1.1.1",
-  "com.google.code.gson" % "gson" % "2.8.6"
+  "com.google.code.gson" % "gson" % "2.8.6",
+  "org.jsoup" % "jsoup" % "1.10.2",
+  "commons-cli" % "commons-cli" % "1.4"
 )
 
