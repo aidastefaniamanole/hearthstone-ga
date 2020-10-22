@@ -56,16 +56,17 @@ public class Population {
         Card toSwap = deck.cards.get(index1);
 
         Card replacement = null;
+        // we chose +1/-1 cards so we avoid picking the same card
         if (deck.heroClass == randDeck.heroClass) {
             // any card will work
             replacement = (Card) randDeck.cards.stream()
-                    .filter(x -> Math.abs(toSwap.baseManaCost - x.baseManaCost) <= 1)
+                    .filter(x -> Math.abs(toSwap.baseManaCost - x.baseManaCost) == 1)
                     .collect(Collectors.toList())
                     .get(0);
         } else {
             // the card does not have to be class specific
             replacement = (Card) randDeck.cards.stream()
-                    .filter(x -> (Math.abs(toSwap.baseManaCost - x.baseManaCost) <= 1) &&
+                    .filter(x -> (Math.abs(toSwap.baseManaCost - x.baseManaCost) == 1) &&
                             ((x.heroClass == deck.heroClass) || (x.heroClass == Card.HeroClass.ANY)))
                     .collect(Collectors.toList())
                     .get(0);
