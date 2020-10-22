@@ -8,10 +8,11 @@ import java.util.stream.Collectors;
 public class Population {
     Integer populationSize = 10;
     // [2-4]
-    public static final int tournamentSize = 4;
+    public static final int tournamentRounds = 4;
     ArrayList<Deck> members;
 
-    Double mutateP = 0.1;
+    // the probability to perform crossover = 0.8, mutation = 0.2
+    Double operationProb = 0.8;
     Double eliteP = 0.8;
     Double randomP = 0.2;
     Integer K = 4;
@@ -50,19 +51,20 @@ public class Population {
 
         ArrayList<Deck> offsprings = new ArrayList<>();
         // perform crossover for N - K individuals
-
-
-
-        // mutate mutateP individuals
-        int toMutate = (int) (members.size() * mutateP);
-        for (int i = 0; i < toMutate; i++) {
-            int randI = rand.nextInt(members.size());
-            offsprings.add(mutate(members.get(randI)));
+        for (int i = 0; i < populationSize - K; i++) {
+            // perform crossover or mutate o member of the population
+            if (rand.nextDouble() < operationProb) {
+                offsprings.addAll(crossover());
+            }
+            else {
+                mutate(select());
+            }
         }
 
-        // recompute fitness for new members and add them to the new generation
+        // recompute fitness for new members and add the fittest K individuals to the new generation
 
-        newGeneration.members.addAll(offsprings);
+        offsprings.sort(Comparator.comparing(Deck::getFitness).reversed());
+        newGeneration.members.addAll(offsprings.subList(0, K));
         return newGeneration;
     }
 
@@ -74,29 +76,18 @@ public class Population {
     public Deck mutate(Deck deck) {
         // chose a random card from this deck
         int index1 = rand.nextInt(Deck.deckSize);
-        Card card1 = deck.cards.get(index1);
+        Card toSwap = deck.cards.get(index1);
         // chose a random deck from the population and filter the cards with +1/-1 manaCost
         int index2 = rand.nextInt(populationSize);
         Deck randDeck = members.get(index2);
 
-        Card toSwap = deck.cards.get(index1);
-
         Card replacement = null;
         // we chose +1/-1 cards so we avoid picking the same card
-        if (deck.heroClass == randDeck.heroClass) {
-            // any card will work
-            replacement = (Card) randDeck.cards.stream()
+        replacement = (Card) randDeck.cards.stream()
                     .filter(x -> Math.abs(toSwap.baseManaCost - x.baseManaCost) == 1)
                     .collect(Collectors.toList())
                     .get(0);
-        } else {
-            // the card does not have to be class specific
-            replacement = (Card) randDeck.cards.stream()
-                    .filter(x -> (Math.abs(toSwap.baseManaCost - x.baseManaCost) == 1) &&
-                            ((x.heroClass == deck.heroClass) || (x.heroClass == Card.HeroClass.ANY)))
-                    .collect(Collectors.toList())
-                    .get(0);
-        }
+
         //swap the cards if possible
         if (replacement != null) {
             deck.cards.set(index1, toSwap);
@@ -107,14 +98,31 @@ public class Population {
 
     /**
      * Mix two decks
-     * @param parent1
-     * @param parent2
      * @return
      */
-    public Deck crossover(Deck parent1, Deck parent2) {
+    public ArrayList<Deck> crossover() {
+        Deck offspring = new Deck();
         // select both parents using tournament selection
+        Deck parent1 = select();
+        Deck parent2 = select();
+        // make sure we don't use the same parent twice
+        while (parent1 == parent2) {
+            parent2 = select();
+        }
 
-        return null;
+        // perform one point cross
+        int crossPoint = rand.nextInt(Deck.deckSize);
+        Deck offspring1 = new Deck();
+        offspring1.cards.addAll(parent1.cards.subList(0, crossPoint));
+        offspring1.cards.addAll(parent2.cards.subList(crossPoint + 1, Deck.deckSize));
+        Deck offspring2 = new Deck();
+        offspring2.cards.addAll(parent2.cards.subList(0, crossPoint));
+        offspring2.cards.addAll(parent1.cards.subList(crossPoint + 1, Deck.deckSize));
+
+        ArrayList<Deck> result = new ArrayList<Deck>();
+        result.add(offspring1);
+        result.add(offspring2);
+        return result;
     }
 
     /**
@@ -122,8 +130,13 @@ public class Population {
      * @return
      */
     public Deck select() {
+        ArrayList<Deck> tournament = new ArrayList<>(tournamentRounds);
 
+        for (int i = 0; i < tournamentRounds; i++) {
+            tournament.add(members.get((rand.nextInt(members.size()))));
+        }
 
-        return null;
+        tournament.sort(Comparator.comparing(Deck::getFitness).reversed());
+        return tournament.get(0);
     }
 }
