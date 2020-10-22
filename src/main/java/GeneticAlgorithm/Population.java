@@ -52,7 +52,7 @@ public class Population {
         ArrayList<Deck> offsprings = new ArrayList<>();
         // perform crossover for N - K individuals
         for (int i = 0; i < populationSize - K; i++) {
-            // perform crossover or mutate o member of the population
+            // perform crossover or mutate a member of the population
             if (rand.nextDouble() < operationProb) {
                 offsprings.addAll(crossover());
             }
@@ -106,7 +106,7 @@ public class Population {
         Deck parent1 = select();
         Deck parent2 = select();
         // make sure we don't use the same parent twice
-        while (parent1 == parent2) {
+        while (parent1.equals(parent2)) {
             parent2 = select();
         }
 
