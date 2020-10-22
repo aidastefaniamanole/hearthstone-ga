@@ -13,6 +13,7 @@ libraryDependencies ++= Seq(
   "org.apache.spark" % "spark-sql_2.11" % "2.2.1",
   "org.apache.hbase" % "hbase-client" % "1.2.1",
   "org.apache.hbase" % "hbase-common" % "1.2.1",
-  "com.googlecode.json-simple" % "json-simple" % "1.1.1"
+  "com.googlecode.json-simple" % "json-simple" % "1.1.1",
+  "com.google.code.gson" % "gson" % "2.8.6"
 )
 
