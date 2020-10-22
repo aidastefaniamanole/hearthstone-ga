@@ -31,4 +31,8 @@ public class Card {
         this.heroClass = (HeroClass) cardInfo.get("heroClass");
         this.cardType = (CardType) cardInfo.get("type");
     }
+
+    public String getName() {
+        return name;
+    }
 }
