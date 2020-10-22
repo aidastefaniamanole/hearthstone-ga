@@ -1,3 +1,5 @@
+package GeneticAlgorithm;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 

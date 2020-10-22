@@ -1,3 +1,5 @@
+package GeneticAlgorithm;
+
 import java.util.ArrayList;
 
 public class Deck {
@@ -10,6 +12,10 @@ public class Deck {
         // extract cards that appear more than twice or if the card is a legendary
 
         return 0;
+    }
+
+    public Integer getFitness() {
+        return fitness;
     }
 
     // TODO: mana curve
