@@ -42,9 +42,13 @@ public class HearthstoneSpark {
 			JSONParser jsonParser = new JSONParser();
 			for (ResourceInputStream resource : inputStreams) {
 				JSONObject jsonObject = (JSONObject) jsonParser.parse(new InputStreamReader(resource.inputStream));
-				if ((boolean) jsonObject.get("collectible")) {
-					cards.add(new GeneticCard(jsonObject, resource.fileName.split("\\.")[0]));
+
+				if (!((boolean) jsonObject.get("collectible")) || jsonObject.get("type").equals("HERO")
+						|| jsonObject.get("type").equals("HERO_POWER")) {
+					continue;
 				}
+
+				cards.add(new GeneticCard(jsonObject, resource.fileName.split("\\.")[0]));
 			}
 		} catch (URISyntaxException | IOException | ParseException e) {
 			logger.error("Read cards fail", e);
@@ -67,7 +71,7 @@ public class HearthstoneSpark {
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("heroClass"), Bytes.toBytes(card.getHeroClass()));
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("baseManaCost"), Bytes.toBytes(card.getBaseManaCost().toString()));
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("cardType"), Bytes.toBytes(card.getCardType()));
-                insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("fileName"), Bytes.toBytes(card.getName()));
+				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("name"), Bytes.toBytes(card.getName()));
 				tableName.put(insHBase);
 			}
 		} catch (IOException e) {
@@ -75,28 +79,31 @@ public class HearthstoneSpark {
 		}
 	}
 
-    public static String catalog = "{\n" +
-            "\t\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"},\n" +
-            "    \"rowkey\":\"key\",\n" +
-            "    \"columns\":{\n" +
-            "\t    \"rowkey\":{\"cf\":\"rowkey\", \"col\":\"key\", \"type\":\"string\"},\n" +
-            "\t    \"heroClass\":{\"cf\":\"info\", \"col\":\"heroClass\", \"type\":\"string\"}\n" +
-            "\t    \"baseManaCost\":{\"cf\":\"info\", \"col\":\"baseManaCost\", \"type\":\"string\"}\n" +
-            "\t    \"cardType\":{\"cf\":\"info\", \"col\":\"cardType\", \"type\":\"string\"}\n" +
-            "    }\n" +
-            "}";
+	public static String catalog = "{" +
+			"\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"}," +
+			"\"rowkey\":\"key\"," +
+			"\"columns\":{" +
+			"\"rowkey\":{\"cf\":\"rowkey\", \"col\":\"key\", \"type\":\"string\"}," +
+			"\"heroClass\":{\"cf\":\"info\", \"col\":\"heroClass\", \"type\":\"string\"}," +
+			"\"baseManaCost\":{\"cf\":\"info\", \"col\":\"baseManaCost\", \"type\":\"string\"}," +
+			"\"cardType\":{\"cf\":\"info\", \"col\":\"cardType\", \"type\":\"string\"}," +
+			"\"name\":{\"cf\":\"info\", \"col\":\"name\", \"type\":\"string\"}" +
+			"}}";
 
 	public static void initPopulation(SQLContext sqlContext ) {
-        Map<String, String> optionsMap = new HashMap<>();
+		Map<String, String> optionsMap = new HashMap<>();
 
 //        String htc = HBaseTableCatalog.tableCatalog();
 //
-//        optionsMap.put(htc, catalog);
-        Dataset dataset = sqlContext.read().options(optionsMap)
-                .format("org.apache.spark.sql.execution.datasources.hbase").load();
-    }
+        optionsMap.put("catalog", catalog);
+		Dataset dataset = sqlContext.read().options(optionsMap)
+				.format("org.apache.spark.sql.execution.datasources.hbase").load();
+
+		dataset.show();
+	}
 
 	public static void main(String[] args) {
+		System.setProperty("hadoop.home.dir", "/home/nightcro/hadoop-3.1.2");
 		// simple spark configuration where everything runs in process using 1 worker thread
 		SparkConf sparkConf = new SparkConf().setAppName("Hearthstone-GA").setMaster("local[1]");
 		SparkContext sc = new SparkContext(sparkConf);
@@ -106,5 +113,6 @@ public class HearthstoneSpark {
 		SQLContext sqlContext = new SQLContext(sc);
 
 		addCardsToHbase(conf);
+		initPopulation(sqlContext);
 	}
 }

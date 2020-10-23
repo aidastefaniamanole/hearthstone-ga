@@ -22,8 +22,8 @@ public enum HeroClass {
 
 	public boolean isBaseClass() {
 		HeroClass[] nonBaseClasses = {ANY, NEUTRAL, SELF, DECK_COLLECTION, OPPONENT, BOSS};
-		for (int i=0; i<nonBaseClasses.length; i++) {
-			if (nonBaseClasses[i] == this) {
+		for (HeroClass nonBaseClass : nonBaseClasses) {
+			if (nonBaseClass == this) {
 				return false;
 			}
 		}
