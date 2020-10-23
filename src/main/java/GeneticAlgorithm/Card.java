@@ -3,37 +3,36 @@ package GeneticAlgorithm;
 import org.json.simple.JSONObject;
 
 public class Card {
-    public enum HeroClass {
-        DRUID,
-        PALADIN,
-        PRIEST,
-        WARLOCK,
-        WARRIOR,
-        MAGE,
-        ROGUE,
-        SHAMAN,
-        ANY
-    }
+	String name;
+	Long baseManaCost;
+	String heroClass;
+	String cardType;
+	public Card(JSONObject cardInfo) {
+		this.name = (String) cardInfo.get("name");
+		this.baseManaCost = (Long) cardInfo.get("baseManaCost");
+		this.heroClass = (String) cardInfo.get("heroClass");
+		this.cardType = (String) cardInfo.get("type");
+	}
 
-    public enum CardType {
-        MINION,
-        SPELL,
-        WEAPON
-    }
+	public String getName() {
+		return name;
+	}
 
-    String name;
-    Long baseManaCost;
-    String heroClass;
-    String cardType;
+	public enum HeroClass {
+		DRUID,
+		PALADIN,
+		PRIEST,
+		WARLOCK,
+		WARRIOR,
+		MAGE,
+		ROGUE,
+		SHAMAN,
+		ANY
+	}
 
-    public Card(JSONObject cardInfo) {
-        this.name = (String) cardInfo.get("name");
-        this.baseManaCost = (Long) cardInfo.get("baseManaCost");
-        this.heroClass = (String) cardInfo.get("heroClass");
-        this.cardType = (String) cardInfo.get("type");
-    }
-
-    public String getName() {
-        return name;
-    }
+	public enum CardType {
+		MINION,
+		SPELL,
+		WEAPON
+	}
 }
