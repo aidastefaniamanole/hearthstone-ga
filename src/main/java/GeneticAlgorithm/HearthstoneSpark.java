@@ -13,7 +13,9 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
+import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
@@ -23,10 +25,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER;
 
@@ -103,7 +102,6 @@ public class HearthstoneSpark {
 	}
 
 	public static void main(String[] args) {
-		System.setProperty("hadoop.home.dir", "/home/nightcro/hadoop-3.1.2");
 		// simple spark configuration where everything runs in process using 1 worker thread
 		SparkConf sparkConf = new SparkConf().setAppName("Hearthstone-GA").setMaster("local[1]");
 		SparkContext sc = new SparkContext(sparkConf);
