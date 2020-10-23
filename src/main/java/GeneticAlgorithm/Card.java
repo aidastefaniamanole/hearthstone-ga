@@ -17,19 +17,20 @@ public class Card {
 
     public enum CardType {
         MINION,
-        SPELL
+        SPELL,
+        WEAPON
     }
 
     String name;
-    Integer baseManaCost;
-    HeroClass heroClass;
-    CardType cardType;
+    Long baseManaCost;
+    String heroClass;
+    String cardType;
 
     public Card(JSONObject cardInfo) {
         this.name = (String) cardInfo.get("name");
-        this.baseManaCost = (Integer) cardInfo.get("baseManaCost");
-        this.heroClass = (HeroClass) cardInfo.get("heroClass");
-        this.cardType = (CardType) cardInfo.get("type");
+        this.baseManaCost = (Long) cardInfo.get("baseManaCost");
+        this.heroClass = (String) cardInfo.get("heroClass");
+        this.cardType = (String) cardInfo.get("type");
     }
 
     public String getName() {
