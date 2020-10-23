@@ -118,9 +118,7 @@ public class HearthstoneSpark {
 			JSONParser jsonParser = new JSONParser();
 			JSONObject jsonObject = (JSONObject) jsonParser.parse(new FileReader(args[0]));
 			heroClass = (String) jsonObject.get("heroClass");
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
+		} catch (IOException | ParseException e) {
 			e.printStackTrace();
 		}
 

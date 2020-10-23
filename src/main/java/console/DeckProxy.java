@@ -45,17 +45,17 @@ public class DeckProxy extends Proxy<GameNotification> {
 
     public DeckProxy() {
         super(NAME);
-        try {
-            // ensure user's personal deck dir exists
-            Files.createDirectories(Paths.get(DECKS_FOLDER_PATH));
-            // ensure decks have been copied to ~/metastone/decks
-            copyDecksFromResources();
-        } catch (IOException e) {
-            logger.error("Trouble creating " + Paths.get(DECKS_FOLDER_PATH));
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
+//        try {
+//            // ensure user's personal deck dir exists
+//            Files.createDirectories(Paths.get(DECKS_FOLDER_PATH));
+//            // ensure decks have been copied to ~/metastone/decks
+//            copyDecksFromResources();
+//        } catch (IOException e) {
+//            logger.error("Trouble creating " + Paths.get(DECKS_FOLDER_PATH));
+//            e.printStackTrace();
+//        } catch (URISyntaxException e) {
+//            e.printStackTrace();
+//        }
     }
 
     public boolean addCardToDeck(Card card) {
