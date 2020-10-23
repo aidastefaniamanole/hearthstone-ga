@@ -124,9 +124,9 @@ public class DeckProxy extends Proxy<GameNotification> {
         decks.clear();
 
         // load decks from ~/metastone/decks on the filesystem
-        loadStandardDecks(ResourceLoader.loadJsonInputStreams(DECKS_FOLDER_PATH, true), new GsonBuilder().setPrettyPrinting().create());
+        loadStandardDecks(ResourceLoader.loadJsonInputStreams(DECKS_FOLDER, false), new GsonBuilder().setPrettyPrinting().create());
 
-        loadMetaDecks(ResourceLoader.loadJsonInputStreams(DECKS_FOLDER_PATH, true), new GsonBuilder().setPrettyPrinting().create());
+        loadMetaDecks(ResourceLoader.loadJsonInputStreams(DECKS_FOLDER, false), new GsonBuilder().setPrettyPrinting().create());
     }
 
     private void copyDecksFromResources() throws IOException, URISyntaxException {
