@@ -29,4 +29,13 @@ public enum HeroClass {
 		}
 		return true;
 	}
+
+	public static HeroClass getEnumFromValue(String value) {
+		for (HeroClass heroClass : values()) {
+			if (heroClass.toString().equals(value)) {
+				return heroClass;
+			}
+		}
+		throw new IllegalArgumentException();
+	}
 }

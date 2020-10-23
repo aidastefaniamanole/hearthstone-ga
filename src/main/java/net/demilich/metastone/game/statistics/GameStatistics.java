@@ -93,6 +93,10 @@ public class GameStatistics implements Cloneable {
 		updateWinRate();
 	}
 
+	public double getWinRate() {
+		return getDouble(Statistic.WIN_RATE);
+	}
+
 	public Object get(Statistic key) {
 		return stats.get(key);
 	}

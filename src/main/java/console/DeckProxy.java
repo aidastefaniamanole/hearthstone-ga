@@ -231,6 +231,19 @@ public class DeckProxy extends Proxy<GameNotification> {
         return deck;
     }
 
+    public static Deck parseStandardDeck(String deckName, HeroClass heroClass, List<String> cardIds) {
+        Deck deck = new Deck(heroClass, false);
+        for (String cardId : cardIds) {
+            Card card = CardCatalogue.getCardById(cardId);
+            if (card == null) {
+                logger.error("Deck {} contains invalid cardId '{}'", deckName, cardId);
+                continue;
+            }
+            deck.getCards().add(card);
+        }
+        return deck;
+    }
+
     public void removeCardFromDeck(Card card) {
         activeDeck.getCards().remove(card);
     }

@@ -9,7 +9,7 @@ public class Population {
 	// [2-4]
 	private int tournamentRounds = 4;
 	private Integer populationSize;
-	private final ArrayList<Deck> members;
+	private final ArrayList<GeneticDeck> members;
 
 	// the probability to perform crossover = 0.8, mutation = 0.2
 	private final Double operationProb = 0.8;
@@ -29,7 +29,7 @@ public class Population {
 	 *
 	 * @param deck
 	 */
-	public void addOrganism(Deck deck) {
+	public void addOrganism(GeneticDeck deck) {
 		members.add(deck);
 	}
 
@@ -38,7 +38,7 @@ public class Population {
 
 		// select K individuals
 		// get e * K individuals with the highest fitness
-		members.sort(Comparator.comparing(Deck::getFitness).reversed());
+		members.sort(Comparator.comparing(GeneticDeck::getFitness).reversed());
 		int last = (int) (K * eliteP);
 		newGeneration.members.addAll(members.subList(0, last));
 
@@ -52,7 +52,7 @@ public class Population {
 			members.remove(randI);
 		}
 
-		ArrayList<Deck> offsprings = new ArrayList<>();
+		ArrayList<GeneticDeck> offsprings = new ArrayList<>();
 		// perform crossover for N - K individuals
 		for (int i = 0; i < populationSize - K; i++) {
 			// perform crossover or mutate a member of the population
@@ -64,9 +64,9 @@ public class Population {
 		}
 
 		// compute fitness for new members and add the fittest K individuals to the new generation
+		Evaluator.calculateFitness(offsprings);
 
-
-		offsprings.sort(Comparator.comparing(Deck::getFitness).reversed());
+		offsprings.sort(Comparator.comparing(GeneticDeck::getFitness).reversed());
 		newGeneration.members.addAll(offsprings.subList(0, K));
 		return newGeneration;
 	}
@@ -77,24 +77,24 @@ public class Population {
 	 * @param deck
 	 * @return
 	 */
-	public void mutate(Deck deck) {
+	public void mutate(GeneticDeck deck) {
 		// chose a random card from this deck
-		int index1 = rand.nextInt(Deck.deckSize);
-		Card toSwap = deck.cards.get(index1);
+		int index1 = rand.nextInt(GeneticDeck.deckSize);
+		GeneticCard toSwap = deck.getCards().get(index1);
 		// chose a random deck from the population and filter the cards with +1/-1 manaCost
 		int index2 = rand.nextInt(populationSize);
-		Deck randDeck = members.get(index2);
+		GeneticDeck randDeck = members.get(index2);
 
-		Card replacement;
+		GeneticCard replacement;
 		// we chose +1/-1 cards so we avoid picking the same card
-		replacement = randDeck.cards.stream()
-				.filter(x -> Math.abs(toSwap.baseManaCost - x.baseManaCost) == 1)
+		replacement = randDeck.getCards().stream()
+				.filter(x -> Math.abs(toSwap.getBaseManaCost() - x.getBaseManaCost()) == 1)
 				.collect(Collectors.toList())
 				.get(0);
 
 		//swap the cards if possible
 		if (replacement != null) {
-			deck.cards.set(index1, toSwap);
+			deck.getCards().set(index1, toSwap);
 		}
 	}
 
@@ -103,25 +103,25 @@ public class Population {
 	 *
 	 * @return
 	 */
-	public ArrayList<Deck> crossover() {
+	public ArrayList<GeneticDeck> crossover() {
 		// select both parents using tournament selection
-		Deck parent1 = select();
-		Deck parent2 = select();
+		GeneticDeck parent1 = select();
+		GeneticDeck parent2 = select();
 		// make sure we don't use the same parent twice
 		while (parent1.equals(parent2)) {
 			parent2 = select();
 		}
 
 		// perform one point cross
-		int crossPoint = rand.nextInt(Deck.deckSize);
-		Deck offspring1 = new Deck();
-		offspring1.cards.addAll(parent1.cards.subList(0, crossPoint));
-		offspring1.cards.addAll(parent2.cards.subList(crossPoint + 1, Deck.deckSize));
-		Deck offspring2 = new Deck();
-		offspring2.cards.addAll(parent2.cards.subList(0, crossPoint));
-		offspring2.cards.addAll(parent1.cards.subList(crossPoint + 1, Deck.deckSize));
+		int crossPoint = rand.nextInt(GeneticDeck.deckSize);
+		GeneticDeck offspring1 = new GeneticDeck();
+		offspring1.getCards().addAll(parent1.getCards().subList(0, crossPoint));
+		offspring1.getCards().addAll(parent2.getCards().subList(crossPoint + 1, GeneticDeck.deckSize));
+		GeneticDeck offspring2 = new GeneticDeck();
+		offspring2.getCards().addAll(parent2.getCards().subList(0, crossPoint));
+		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint + 1, GeneticDeck.deckSize));
 
-		ArrayList<Deck> result = new ArrayList<>();
+		ArrayList<GeneticDeck> result = new ArrayList<>();
 		result.add(offspring1);
 		result.add(offspring2);
 		return result;
@@ -132,14 +132,14 @@ public class Population {
 	 *
 	 * @return
 	 */
-	public Deck select() {
-		ArrayList<Deck> tournament = new ArrayList<>(tournamentRounds);
+	public GeneticDeck select() {
+		ArrayList<GeneticDeck> tournament = new ArrayList<>(tournamentRounds);
 
 		for (int i = 0; i < tournamentRounds; i++) {
-			tournament.add(members.get((rand.nextInt(members.size()))));
+			tournament.add(members.get(rand.nextInt(members.size())));
 		}
 
-		tournament.sort(Comparator.comparing(Deck::getFitness).reversed());
+		tournament.sort(Comparator.comparing(GeneticDeck::getFitness).reversed());
 		return tournament.get(0);
 	}
 }
