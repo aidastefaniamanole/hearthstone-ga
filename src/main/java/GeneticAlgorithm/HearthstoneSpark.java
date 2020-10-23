@@ -31,6 +31,16 @@ import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER;
 
 public class HearthstoneSpark {
 	private static final Logger logger = LoggerFactory.getLogger(HearthstoneSpark.class);
+	public static String catalog = "{" +
+			"\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"}," +
+			"\"rowkey\":\"key\"," +
+			"\"columns\":{" +
+			"\"rowkey\":{\"cf\":\"rowkey\", \"col\":\"key\", \"type\":\"string\"}," +
+			"\"heroClass\":{\"cf\":\"info\", \"col\":\"heroClass\", \"type\":\"string\"}," +
+			"\"baseManaCost\":{\"cf\":\"info\", \"col\":\"baseManaCost\", \"type\":\"string\"}," +
+			"\"cardType\":{\"cf\":\"info\", \"col\":\"cardType\", \"type\":\"string\"}," +
+			"\"name\":{\"cf\":\"info\", \"col\":\"name\", \"type\":\"string\"}" +
+			"}}";
 
 	public static ArrayList<GeneticCard> readCards() {
 		ArrayList<GeneticCard> cards = new ArrayList<>();
@@ -78,23 +88,12 @@ public class HearthstoneSpark {
 		}
 	}
 
-	public static String catalog = "{" +
-			"\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"}," +
-			"\"rowkey\":\"key\"," +
-			"\"columns\":{" +
-			"\"rowkey\":{\"cf\":\"rowkey\", \"col\":\"key\", \"type\":\"string\"}," +
-			"\"heroClass\":{\"cf\":\"info\", \"col\":\"heroClass\", \"type\":\"string\"}," +
-			"\"baseManaCost\":{\"cf\":\"info\", \"col\":\"baseManaCost\", \"type\":\"string\"}," +
-			"\"cardType\":{\"cf\":\"info\", \"col\":\"cardType\", \"type\":\"string\"}," +
-			"\"name\":{\"cf\":\"info\", \"col\":\"name\", \"type\":\"string\"}" +
-			"}}";
-
-	public static void initPopulation(SQLContext sqlContext ) {
+	public static void initPopulation(SQLContext sqlContext) {
 		Map<String, String> optionsMap = new HashMap<>();
 
 //        String htc = HBaseTableCatalog.tableCatalog();
 //
-        optionsMap.put("catalog", catalog);
+		optionsMap.put("catalog", catalog);
 		Dataset dataset = sqlContext.read().options(optionsMap)
 				.format("org.apache.spark.sql.execution.datasources.hbase").load();
 
