@@ -1,5 +1,7 @@
 package console;
 
+import GeneticAlgorithm.GeneticCard;
+import GeneticAlgorithm.GeneticDeck;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.demilich.metastone.game.cards.CardCatalogue;
@@ -27,13 +29,54 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.PrintWriter;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.stream.Collectors;
 
 public class MetaStoneSim {
 
     private static final Logger logger = LoggerFactory.getLogger(MetaStoneSim.class);
 
+    private static final DeckFormat deckFormat;
+    private static final List<Deck> decks;
+
+    static {
+        //Define deck format
+        deckFormat = new DeckFormat();
+        for (CardSet set : new CardSet[]{CardSet.ANY, CardSet.BASIC, CardSet.CLASSIC, CardSet.REWARD, CardSet.PROMO, CardSet.HALL_OF_FAME}) {
+            deckFormat.addSet(set);
+        }
+
+        //Load cards
+        try {
+            //CardCatalogue.copyCardsFromResources();
+            CardCatalogue.loadLocalCards();
+        } catch (Exception e) {
+            logger.info("Fail loading cards metastone", e);
+        }
+        //Load decks
+        DeckProxy dp = new DeckProxy();
+        try {
+            dp.loadDecks();
+        } catch (Exception e) {
+            logger.info("Fail loading decks metastone", e);
+        }
+
+        decks = dp.getDecks();
+    }
+
     public static void main(String[] args) {
+        //Save json
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String json = gson.toJson(simulate(args));
+        PrintWriter writer = new PrintWriter(System.out);
+        writer.println(json);
+        writer.flush();
+        writer.close();
+    }
+
+    public static PlayersGameStatistics simulate(String[] args) {
         Options options = new Options();
 
         Option arg = new Option("d1", "deckD1", true, "name deck for player 1");
@@ -59,7 +102,7 @@ public class MetaStoneSim {
         try {
             cmd = parser.parse(options, args);
         } catch (ParseException e) {
-            System.out.println(e.getMessage());
+            logger.info("Fail argument parsing", e);
             formatter.printHelp("utility-name", options);
 
             System.exit(1);
@@ -70,43 +113,48 @@ public class MetaStoneSim {
         int simulationsCount = Integer.parseInt(cmd.getOptionValue("simCount"));
         int aiLevel = Integer.parseInt(cmd.getOptionValue("aiLevel"));
 
-        //Define deck format
-        DeckFormat deckFormat = new DeckFormat();
-        for (CardSet set : new CardSet[]{CardSet.ANY, CardSet.BASIC, CardSet.CLASSIC, CardSet.REWARD, CardSet.PROMO, CardSet.HALL_OF_FAME}) {
-            deckFormat.addSet(set);
-        }
-
-        //Load cards
-        try {
-            //CardCatalogue.copyCardsFromResources();
-            CardCatalogue.loadLocalCards();
-        } catch (Exception e) {
-            logger.info("Fail", e);
-        }
-        //Load decks
-        DeckProxy dp = new DeckProxy();
-        try {
-            dp.loadDecks();
-        } catch (Exception e) {
-            logger.info("Fail", e);
-        }
-
-        Deck[] decks = dp.getDecks().toArray(new Deck[dp.getDecks().size()]);
-
         //Simulate
-        Deck d1 = Arrays.stream(decks).filter(d -> d.getName().equals(d1Name)).findFirst().get();
-        Deck d2 = Arrays.stream(decks).filter(d -> d.getName().equals(d2Name)).findFirst().get();
+        Deck d1 = decks.stream().filter(d -> d.getName().equals(d1Name)).findFirst().get();
+        Deck d2 = decks.stream().filter(d -> d.getName().equals(d2Name)).findFirst().get();
         GameConfig gc = GetGameConfig(d1, d2, deckFormat, aiLevel, simulationsCount);
 
-        PlayersGameStatistics stats = Simulate(gc);
+        return Simulate(gc);
+    }
 
-        //Save json
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String json = gson.toJson(stats);
-        PrintWriter writer = new PrintWriter(System.out);
-        writer.println(json);
-        writer.flush();
-        writer.close();
+    private static Deck adaptToMetaStone(GeneticDeck deck) {
+        List<String> deckIds = deck.getCards().stream().map(GeneticCard::getId).collect(Collectors.toList());
+        return DeckProxy.parseStandardDeck("CustomDeck", HeroClass.getEnumFromValue(deck.getHeroClass().toString()), deckIds);
+
+    }
+
+    public static PlayersGameStatistics simulate(GeneticDeck deck) {
+        Deck d1 = adaptToMetaStone(deck);
+        Deck d2 = decks.get(new Random().nextInt(decks.size()));
+
+        GameConfig gc = GetGameConfig(d1, d2, deckFormat, 2, 20);
+
+        return Simulate(gc);
+    }
+
+    public static PlayersGameStatistics simulate(GeneticDeck deck, int aiLevel, int simulationsCount) {
+        Deck d1 = adaptToMetaStone(deck);
+        Deck d2 = decks.get(new Random().nextInt(decks.size()));
+
+        GameConfig gc = GetGameConfig(d1, d2, deckFormat, aiLevel, simulationsCount);
+
+        return Simulate(gc);
+    }
+
+    public static List<PlayersGameStatistics> simulateAll(GeneticDeck deck, int aiLevel, int simulationsCount) {
+        Deck d1 = adaptToMetaStone(deck);
+        List<PlayersGameStatistics> results = new ArrayList<>();
+
+        decks.forEach(x -> {
+            GameConfig gc = GetGameConfig(d1, x, deckFormat, aiLevel, simulationsCount);
+            results.add(Simulate(gc));
+        });
+
+        return results;
     }
 
     protected static HeroCard getHeroCardForClass(HeroClass heroClass) {
@@ -119,7 +167,7 @@ public class MetaStoneSim {
         return null;
     }
 
-    public static GameConfig GetGameConfig(Deck deck1, Deck deck2, DeckFormat format, int aiLevel, int simulationsCount) {
+    private static GameConfig GetGameConfig(Deck deck1, Deck deck2, DeckFormat format, int aiLevel, int simulationsCount) {
         PlayerConfig player1Config = new PlayerConfig(deck1, GetAIBehaviour(aiLevel));// new GameStateValueBehaviour(FeatureVector.getFittest(), "a"));
         player1Config.setName("Player 1");
         player1Config.setHeroCard(getHeroCardForClass(deck1.getHeroClass()));
@@ -152,7 +200,7 @@ public class MetaStoneSim {
         }
     }
 
-    private static PlayersGameStatistics Simulate(GameConfig gameConfig) {
+    public static PlayersGameStatistics Simulate(GameConfig gameConfig) {
         GameStatistics p1stats = new GameStatistics(), p2stats = new GameStatistics();
 
         for (int i = 0; i < gameConfig.getNumberOfGames(); i++) {

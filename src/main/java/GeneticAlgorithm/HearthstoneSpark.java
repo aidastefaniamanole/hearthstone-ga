@@ -1,6 +1,5 @@
 package GeneticAlgorithm;
 
-import console.MetaStoneSim;
 import net.demilich.metastone.utils.ResourceInputStream;
 import net.demilich.metastone.utils.ResourceLoader;
 import org.apache.hadoop.conf.Configuration;
@@ -34,8 +33,8 @@ import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER;
 public class HearthstoneSpark {
 	private static final Logger logger = LoggerFactory.getLogger(HearthstoneSpark.class);
 
-	public static ArrayList<Card> readCards() {
-		ArrayList<Card> cards = new ArrayList<>();
+	public static ArrayList<GeneticCard> readCards() {
+		ArrayList<GeneticCard> cards = new ArrayList<>();
 
 		try {
 			Collection<ResourceInputStream> inputStreams = ResourceLoader
@@ -44,7 +43,7 @@ public class HearthstoneSpark {
 			for (ResourceInputStream resource : inputStreams) {
 				JSONObject jsonObject = (JSONObject) jsonParser.parse(new InputStreamReader(resource.inputStream));
 				if ((boolean) jsonObject.get("collectible")) {
-					cards.add(new Card(jsonObject, resource.fileName.split(".")[0]));
+					cards.add(new GeneticCard(jsonObject, resource.fileName.split("\\.")[0]));
 				}
 			}
 		} catch (URISyntaxException | IOException | ParseException e) {
@@ -55,7 +54,7 @@ public class HearthstoneSpark {
 	}
 
 	public static void addCardsToHbase(Configuration conf) {
-		ArrayList<Card> cards = readCards();
+		ArrayList<GeneticCard> cards = readCards();
 
 		// load cards in hbase so the filtering would be easier
 		try {
@@ -63,12 +62,12 @@ public class HearthstoneSpark {
 			Connection connection = ConnectionFactory.createConnection(conf);
 			// Table on which different commands have to be run.
 			Table tableName = connection.getTable(TableName.valueOf("cards"));
-			for (Card card : cards) {
-				Put insHBase = new Put(Bytes.toBytes(card.name));
-				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("heroClass"), Bytes.toBytes(card.heroClass));
-				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("baseManaCost"), Bytes.toBytes(card.baseManaCost.toString()));
-				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("cardType"), Bytes.toBytes(card.cardType));
-                insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("fileName"), Bytes.toBytes(card.fileName));
+			for (GeneticCard card : cards) {
+				Put insHBase = new Put(Bytes.toBytes(card.getId()));
+				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("heroClass"), Bytes.toBytes(card.getHeroClass()));
+				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("baseManaCost"), Bytes.toBytes(card.getBaseManaCost().toString()));
+				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("cardType"), Bytes.toBytes(card.getCardType()));
+                insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("fileName"), Bytes.toBytes(card.getName()));
 				tableName.put(insHBase);
 			}
 		} catch (IOException e) {
