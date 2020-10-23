@@ -7,11 +7,14 @@ public class Card {
 	Long baseManaCost;
 	String heroClass;
 	String cardType;
-	public Card(JSONObject cardInfo) {
+	String fileName;
+
+	public Card(JSONObject cardInfo, String fileName) {
 		this.name = (String) cardInfo.get("name");
 		this.baseManaCost = (Long) cardInfo.get("baseManaCost");
 		this.heroClass = (String) cardInfo.get("heroClass");
 		this.cardType = (String) cardInfo.get("type");
+		this.fileName = fileName;
 	}
 
 	public String getName() {
