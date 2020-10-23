@@ -38,7 +38,8 @@ public class HearthstoneSpark {
 			"\"heroClass\":{\"cf\":\"info\", \"col\":\"heroClass\", \"type\":\"string\"}," +
 			"\"baseManaCost\":{\"cf\":\"info\", \"col\":\"baseManaCost\", \"type\":\"string\"}," +
 			"\"cardType\":{\"cf\":\"info\", \"col\":\"cardType\", \"type\":\"string\"}," +
-			"\"name\":{\"cf\":\"info\", \"col\":\"name\", \"type\":\"string\"}" +
+			"\"name\":{\"cf\":\"info\", \"col\":\"name\", \"type\":\"string\"}," +
+			"\"rarity\":{\"cf\":\"info\", \"col\":\"rarity\", \"type\":\"string\"}" +
 			"}}";
 
 	public static ArrayList<GeneticCard> readCards() {
@@ -115,7 +116,7 @@ public class HearthstoneSpark {
 		// read client config
 		try {
 			JSONParser jsonParser = new JSONParser();
-			JSONObject jsonObject = (JSONObject) jsonParser.parse(new FileReader("input.json"));
+			JSONObject jsonObject = (JSONObject) jsonParser.parse(new FileReader(args[0]));
 			heroClass = (String) jsonObject.get("heroClass");
 		} catch (IOException e) {
 			e.printStackTrace();
