@@ -13,15 +13,14 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 import org.apache.spark.sql.SQLContext;
-import org.apache.spark.sql.SparkSession;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URISyntaxException;
@@ -81,6 +80,7 @@ public class HearthstoneSpark {
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("baseManaCost"), Bytes.toBytes(card.getBaseManaCost().toString()));
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("cardType"), Bytes.toBytes(card.getCardType()));
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("name"), Bytes.toBytes(card.getName()));
+				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("rarity"), Bytes.toBytes(card.getRarity()));
 				tableName.put(insHBase);
 			}
 		} catch (IOException e) {
@@ -88,16 +88,16 @@ public class HearthstoneSpark {
 		}
 	}
 
-	public static void initPopulation(SQLContext sqlContext) {
+	public static void initPopulation(SQLContext sqlContext, String heroClass) {
 		Map<String, String> optionsMap = new HashMap<>();
 
-//        String htc = HBaseTableCatalog.tableCatalog();
-//
 		optionsMap.put("catalog", catalog);
 		Dataset dataset = sqlContext.read().options(optionsMap)
 				.format("org.apache.spark.sql.execution.datasources.hbase").load();
 
-		dataset.show();
+		dataset.filter(dataset.col("heroClass").equalTo(heroClass).or(dataset.col("heroClass").equalTo("ANY"))).show();
+
+
 	}
 
 	public static void main(String[] args) {
@@ -110,6 +110,20 @@ public class HearthstoneSpark {
 		SQLContext sqlContext = new SQLContext(sc);
 
 		addCardsToHbase(conf);
-		initPopulation(sqlContext);
+
+		String heroClass = "";
+		// read client config
+		try {
+			JSONParser jsonParser = new JSONParser();
+			JSONObject jsonObject = (JSONObject) jsonParser.parse(new FileReader("input.json"));
+			heroClass = (String) jsonObject.get("heroClass");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		System.out.println(heroClass);
+		initPopulation(sqlContext, heroClass);
 	}
 }

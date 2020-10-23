@@ -10,12 +10,14 @@ public class GeneticCard {
 	private String heroClass;
 	private String cardType;
 	private String id;
+	private String rarity;
 
 	public GeneticCard(JSONObject cardInfo, String id) {
 		this.name = (String) cardInfo.get("name");
 		this.baseManaCost = (Long) cardInfo.get("baseManaCost");
 		this.heroClass = (String) cardInfo.get("heroClass");
 		this.cardType = (String) cardInfo.get("type");
+		this.rarity = (String) cardInfo.get("rarity");
 		this.id = id;
 	}
 
@@ -34,6 +36,8 @@ public class GeneticCard {
 	public String getCardType() {
 		return cardType;
 	}
+
+	public String getRarity() { return  rarity; }
 
 	@Override
 	public boolean equals(Object o) {
