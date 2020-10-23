@@ -1,5 +1,7 @@
 package GeneticAlgorithm;
 
+import net.demilich.metastone.utils.ResourceInputStream;
+import net.demilich.metastone.utils.ResourceLoader;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.spark.SparkConf;
@@ -8,41 +10,37 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Collection;
+
+import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER;
 
 public class HearthstoneSpark {
 
-    public static void readCards(String dirPath) {
-        File dir = new File(dirPath);
-        File[] firstLevelFiles = dir.listFiles();
-        if (firstLevelFiles != null && firstLevelFiles.length > 0) {
-            for (File aFile : firstLevelFiles) {
-                if (aFile.isDirectory()) {
-                    readCards(aFile.getAbsolutePath());
-                } else {
-                    // read the file
-                    JSONParser jsonParser = new JSONParser();
-                    try {
-                        FileReader reader = new FileReader(aFile);
-                        Object o = jsonParser.parse(reader);
-                        JSONObject jsonObject = (JSONObject)o;
-                        if ((boolean) jsonObject.get("collectible")) {
-                            // save the card in hbase
+    public static ArrayList<Card> readCards() {
+        ArrayList<Card> cards = new ArrayList<>();
 
-                        }
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+        try {
+            Collection<ResourceInputStream> inputStreams = ResourceLoader
+                    .loadJsonInputStreams(CARDS_FOLDER, false);
+            JSONParser jsonParser = new JSONParser();
+            for (ResourceInputStream resource : inputStreams) {
+                JSONObject jsonObject = (JSONObject)jsonParser.parse(new InputStreamReader(resource.inputStream));
+                if ((boolean) jsonObject.get("collectible")) {
+                    cards.add(new Card(jsonObject));
                 }
             }
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
+
+        return cards;
     }
 
     public static void main(String[] args) {
@@ -56,7 +54,7 @@ public class HearthstoneSpark {
         // hBaseContext = new
 
         // load cards in hbase so the filtering would be easier
-        // readCards("resources/cards/");
+        ArrayList<Card> cards = readCards();
 
 
 
