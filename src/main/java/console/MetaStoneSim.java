@@ -79,7 +79,7 @@ public class MetaStoneSim {
         //Load cards
         try {
             //CardCatalogue.copyCardsFromResources();
-            CardCatalogue.loadCards();
+            CardCatalogue.loadLocalCards();
         } catch (Exception e) {
             logger.info("Fail", e);
         }

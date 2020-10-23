@@ -16,6 +16,7 @@ libraryDependencies ++= Seq(
   "com.googlecode.json-simple" % "json-simple" % "1.1.1",
   "com.google.code.gson" % "gson" % "2.8.6",
   "org.jsoup" % "jsoup" % "1.10.2",
-  "commons-cli" % "commons-cli" % "1.4"
+  "commons-cli" % "commons-cli" % "1.4",
+  "ch.qos.logback" % "logback-classic" % "1.2.3" % Test
 )
 
