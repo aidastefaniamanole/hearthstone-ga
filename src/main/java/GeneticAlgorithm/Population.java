@@ -63,6 +63,7 @@ public class Population {
 
         // recompute fitness for new members and add the fittest K individuals to the new generation
 
+
         offsprings.sort(Comparator.comparing(Deck::getFitness).reversed());
         newGeneration.members.addAll(offsprings.subList(0, K));
         return newGeneration;
