@@ -20,6 +20,11 @@ libraryDependencies ++= Seq(
   "org.jsoup" % "jsoup" % "1.10.2",
   "commons-cli" % "commons-cli" % "1.4",
   "ch.qos.logback" % "logback-classic" % "1.2.3" % Test,
-  "com.hortonworks" % "shc-core" % "1.1.1-2.1-s_2.11" exclude("slf4j-log4j12", "log4j")
+  "com.hortonworks" % "shc-core" % "1.1.1-2.1-s_2.11"
+)
+
+excludeDependencies ++= Seq(
+  // commons-logging is replaced by jcl-over-slf4j
+  ExclusionRule("org.slf4j", "slf4j-log4j12")
 )
 
