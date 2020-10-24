@@ -4,11 +4,13 @@ import net.demilich.metastone.game.cards.Card;
 import net.demilich.metastone.game.cards.Rarity;
 import net.demilich.metastone.game.decks.Deck;
 import net.demilich.metastone.game.logic.GameLogic;
+import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoders;
+import org.apache.spark.sql.SQLContext;
+import org.jcodings.util.Hash;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Objects;
+import java.util.*;
 
 public class GeneticDeck implements Serializable {
 	private static final long serialVersionUID = 1L;
@@ -58,15 +60,43 @@ public class GeneticDeck implements Serializable {
 		return Objects.hash(cards, fitness, heroClass);
 	}
 
-	public boolean checkCorrectness() {
+	public void checkCorrectnessAndFix() {
+		Map<String, String> optionsMap = new HashMap<>();
+
+		optionsMap.put("catalog", HearthstoneSpark.catalog);
+		Dataset dataset = HearthstoneSpark.getSQLContext().read().options(optionsMap)
+				.format("org.apache.spark.sql.execution.datasources.hbase").load();
+
+		Dataset dataset1 = dataset.filter(dataset.col("heroClass")
+				.equalTo(heroClass).or(dataset.col("heroClass").equalTo("ANY")));
+
+		HashMap<GeneticCard, Integer> toRemove = new HashMap<>();
+
 		for (GeneticCard card : cards) {
 			Integer frequency = Collections.frequency(cards, card);
 			Boolean isCorrect = card.getRarity().equals("LEGENDARY") ? frequency < 2 : frequency < 3;
+			// remove the card and find replacement
 			if (!isCorrect) {
-				return false;
+				toRemove.put(card, frequency - 1);
 			}
 		}
-		return true;
+
+		for (Map.Entry<GeneticCard, Integer> entry : toRemove.entrySet()) {
+			for (int i = 0; i < entry.getValue(); i++) {
+				cards.remove(entry.getKey());
+			}
+			for (int i = 0; i < entry.getValue(); i++) {
+				List<GeneticCard> cardList = dataset1.filter(dataset.col("baseManaCost")
+						.equalTo(entry.getKey().getBaseManaCost())).as(Encoders.bean(GeneticCard.class)).collectAsList();
+				System.out.println("Replacement cards " + cardList.size());
+				for (GeneticCard gCard : cardList) {
+					if (canAddCardToDeck(gCard)) {
+						cards.add(gCard);
+						break;
+					}
+				}
+			}
+		}
 	}
 
 	public int containsHowMany(GeneticCard card) {

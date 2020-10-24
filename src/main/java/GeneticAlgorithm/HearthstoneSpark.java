@@ -12,7 +12,6 @@ import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.hadoop.hbase.util.Pair;
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
@@ -23,7 +22,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import scala.Tuple2;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -38,6 +36,8 @@ public class HearthstoneSpark {
 	private static final Integer noPopulations = 2;
 	private static final Integer populationSize = 20; //20
 	private static final Integer noGenerations = 10; //10
+
+	private static SQLContext sqlContext;
 
 	public static String catalog = "{" +
 			"\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"}," +
@@ -143,6 +143,10 @@ public class HearthstoneSpark {
 		return populations;
 	}
 
+	public static SQLContext getSQLContext() {
+		return sqlContext;
+	}
+
 	public static void main(String[] args) {
 		// simple spark configuration where everything runs in process using 1 worker thread
 		SparkConf sparkConf = new SparkConf().setAppName("Hearthstone-GA").setMaster("local[2]");
@@ -150,7 +154,7 @@ public class HearthstoneSpark {
 		// default HBase configuration for connecting to localhost on default port
 		Configuration conf = HBaseConfiguration.create();
 		// the entry point interface for the Spark SQL processing module
-		SQLContext sqlContext = new SQLContext(sc);
+		sqlContext = new SQLContext(sc);
 
 		addCardsToHbase(conf);
 
@@ -167,8 +171,6 @@ public class HearthstoneSpark {
 		logger.info("Generate decks for hero {}", heroClass);
 		List<Population> populations = initPopulations(sqlContext, heroClass);
 		logger.info("Initial population complete");
-
-
 
 		populations.forEach(x -> {
 			x.getMembers().forEach(y -> {
