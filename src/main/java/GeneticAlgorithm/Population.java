@@ -52,7 +52,7 @@ public class Population implements Serializable {
 		// get r * K random individuals to maintain diversity
 		members.subList(0, last).clear();
 
-		int noRandIndividuals = (int) (K * randomP);
+		int noRandIndividuals = (int) Math.ceil((double)K * randomP);
 		for (int i = 0; i < noRandIndividuals; i++) {
 			int randI = rand.nextInt(members.size());
 			newGeneration.addOrganism(members.get(randI));
@@ -74,7 +74,7 @@ public class Population implements Serializable {
 		Evaluator.calculateFitness(offsprings);
 
 		offsprings.sort(Comparator.comparing(GeneticDeck::getFitness).reversed());
-		newGeneration.members.addAll(offsprings.subList(0, K));
+		newGeneration.members.addAll(offsprings.subList(0, Math.min(populationSize - K, offsprings.size())));
 		return newGeneration;
 	}
 
@@ -89,7 +89,7 @@ public class Population implements Serializable {
 		int index1 = rand.nextInt(GeneticDeck.deckSize);
 		GeneticCard toSwap = deck.getCards().get(index1);
 		// chose a random deck from the population and filter the cards with +1/-1 manaCost
-		int index2 = rand.nextInt(populationSize);
+		int index2 = rand.nextInt(populationSize - K);
 		GeneticDeck randDeck = members.get(index2);
 
 		// we chose +1/-1 cards so we avoid picking the same card
@@ -100,11 +100,11 @@ public class Population implements Serializable {
 		// swap the card if possible
 		if (replacements.size() != 0) {
 			GeneticCard toRemove = deck.cards.get(index1);
-			deck.cards.remove(index1);
-			Boolean swapped = false;
-			for (int i = 0; i < replacements.size(); i++) {
-				if (deck.canAddCardToDeck(replacements.get(i))) {
-					deck.getCards().set(index1, toSwap);
+			deck.cards.remove(toSwap);
+			boolean swapped = false;
+			for (GeneticCard replacement : replacements) {
+				if (deck.canAddCardToDeck(replacement)) {
+					deck.getCards().add(replacement);
 					swapped = true;
 					break;
 				}
@@ -133,14 +133,18 @@ public class Population implements Serializable {
 		int crossPoint = rand.nextInt(GeneticDeck.deckSize);
 		GeneticDeck offspring1 = new GeneticDeck(parent1.heroClass);
 		offspring1.getCards().addAll(parent1.getCards().subList(0, crossPoint));
-		offspring1.getCards().addAll(parent2.getCards().subList(crossPoint + 1, GeneticDeck.deckSize));
+		offspring1.getCards().addAll(parent2.getCards().subList(crossPoint, GeneticDeck.deckSize));
 		GeneticDeck offspring2 = new GeneticDeck(parent2.heroClass);
 		offspring2.getCards().addAll(parent2.getCards().subList(0, crossPoint));
-		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint + 1, GeneticDeck.deckSize));
+		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint, GeneticDeck.deckSize));
 
 		ArrayList<GeneticDeck> result = new ArrayList<>();
-		result.add(offspring1);
-		result.add(offspring2);
+		//if (offspring1.checkCorrectness()) {
+			result.add(offspring1);
+		//}
+		//if (offspring2.checkCorrectness()) {
+			result.add(offspring2);
+		//}
 		return result;
 	}
 

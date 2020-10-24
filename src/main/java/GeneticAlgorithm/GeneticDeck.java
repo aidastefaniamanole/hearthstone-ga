@@ -7,6 +7,7 @@ import net.demilich.metastone.game.logic.GameLogic;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
 public class GeneticDeck implements Serializable {
@@ -57,20 +58,19 @@ public class GeneticDeck implements Serializable {
 		return Objects.hash(cards, fitness, heroClass);
 	}
 
-	public Integer checkCorrectness() {
-		// extract cards that appear more than twice or if the card is a legendary
-
-		return 0;
+	public boolean checkCorrectness() {
+		for (GeneticCard card : cards) {
+			Integer frequency = Collections.frequency(cards, card);
+			Boolean isCorrect = card.getRarity().equals("LEGENDARY") ? frequency < 2 : frequency < 3;
+			if (!isCorrect) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public int containsHowMany(GeneticCard card) {
-		int count = 0;
-		for (GeneticCard cardInDeck : cards) {
-			if (card.getRowkey().equals(cardInDeck.getRowkey())) {
-				count++;
-			}
-		}
-		return count;
+		return Collections.frequency(cards, card);
 	}
 
 	public boolean canAddCardToDeck(GeneticCard card) {

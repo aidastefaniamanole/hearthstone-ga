@@ -10,6 +10,7 @@ import org.apache.hadoop.hbase.client.ConnectionFactory;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.hadoop.hbase.util.Pair;
 import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
@@ -35,8 +36,8 @@ import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER;
 public class HearthstoneSpark {
 	private static final Logger logger = LoggerFactory.getLogger(HearthstoneSpark.class);
 	private static final Integer noPopulations = 2;
-	private static final Integer populationSize = 10; //20
-	private static final Integer noGenerations = 5; //10
+	private static final Integer populationSize = 20; //20
+	private static final Integer noGenerations = 10; //10
 
 	public static String catalog = "{" +
 			"\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"}," +
@@ -165,35 +166,53 @@ public class HearthstoneSpark {
 
 		logger.info("Generate decks for hero {}", heroClass);
 		List<Population> populations = initPopulations(sqlContext, heroClass);
+		logger.info("Initial population complete");
 
-		// run the GA in parallel
-		JavaRDD<Population> populationsRDD = sc.parallelize(populations);
-		populationsRDD.foreach(x -> {
-			Evaluator.calculateFitness(x.getMembers());
-			for (int i = 0; i < noGenerations; i++) {
-				x = x.evolve();
-			}
+
+
+		populations.forEach(x -> {
+			x.getMembers().forEach(y -> {
+				System.out.println("Win rate " + y.getFitness());
+				System.out.println("Cards\n" + y.getCards().toString());
+			});
 		});
 
-		List<List<Tuple2<Double, GeneticDeck>>> lists = populationsRDD.map(x -> {
-			List<Tuple2<Double, GeneticDeck>> pairs = new ArrayList<>();
+		logger.info("Commence parallelization");
+		// run the GA in parallel
+		JavaRDD<Population> populationsRDD = sc.parallelize(populations);
+		populationsRDD = populationsRDD.map(x -> {
+			Evaluator.calculateFitness(x.getMembers());
+			Population var = x;
+			for (int i = 0; i < noGenerations; i++) {
+				logger.info("Evolve generation {}", i);
+				var = var.evolve();
+			}
+			return var;
+		});
+
+		List<List<Pair<Double, GeneticDeck>>> lists = populationsRDD.map(x -> {
+			List<Pair<Double, GeneticDeck>> pairs = new ArrayList<>();
 			for (GeneticDeck deck : x.getMembers()) {
-				pairs.add(new Tuple2<>(deck.getFitness(), deck));
+				pairs.add(new Pair<>(deck.getFitness(), deck));
 			}
 
 			return pairs;
 		}).collect();
 
 		// create a list of tuples (fitness, deck) and distribute it
-		List<Tuple2<Double, GeneticDeck>> tuplesList = new ArrayList<>();
+		List<Pair<Double, GeneticDeck>> tuplesList = new ArrayList<>();
 		lists.forEach(tuplesList::addAll);
+		tuplesList.sort(Comparator.comparing(Pair::getFirst));
+		Collections.reverse(tuplesList);
+		logger.info("Generate parallelize pairs");
 
-		JavaPairRDD<Double, GeneticDeck> tuples = sc.parallelizePairs(tuplesList);
-		List<Tuple2<Double, GeneticDeck>> topTenDecks = tuples.sortByKey(false).takeOrdered(10);
-
-		topTenDecks.forEach(x -> {
-			System.out.println("Win rate" + x._1);
-			System.out.println("Cards" + x._2.toString());
+		System.out.println("-------------------------------------------------------------------------");
+		System.out.println("Result:");
+		tuplesList.stream().limit(10).forEach(x -> {
+			System.out.println("Win rate " + x.getFirst());
+			System.out.println("Cards\n" + x.getSecond().toString());
 		});
 	}
 }
+
+
