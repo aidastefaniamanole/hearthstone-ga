@@ -74,7 +74,7 @@ public class Population implements Serializable {
 		Evaluator.calculateFitness(offsprings);
 
 		offsprings.sort(Comparator.comparing(GeneticDeck::getFitness).reversed());
-		newGeneration.members.addAll(offsprings.subList(0, K));
+		newGeneration.members.addAll(offsprings.subList(0, Math.min(populationSize - K, offsprings.size())));
 		return newGeneration;
 	}
 
@@ -139,8 +139,12 @@ public class Population implements Serializable {
 		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint + 1, GeneticDeck.deckSize));
 
 		ArrayList<GeneticDeck> result = new ArrayList<>();
-		result.add(offspring1);
-		result.add(offspring2);
+		if (offspring1.checkCorrectness()) {
+			result.add(offspring1);
+		}
+		if (offspring2.checkCorrectness()) {
+			result.add(offspring2);
+		}
 		return result;
 	}
 
