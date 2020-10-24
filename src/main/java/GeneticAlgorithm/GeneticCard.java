@@ -75,7 +75,8 @@ public class GeneticCard implements Serializable {
 		return Objects.equals(name, card.name) &&
 				Objects.equals(baseManaCost, card.baseManaCost) &&
 				Objects.equals(heroClass, card.heroClass) &&
-				Objects.equals(cardType, card.cardType);
+				Objects.equals(cardType, card.cardType) &&
+				Objects.equals(rarity, card.rarity);
 	}
 
 	@Override
@@ -87,4 +88,8 @@ public class GeneticCard implements Serializable {
 		return name;
 	}
 
+	@Override
+	public String toString() {
+		return rowkey;
+	}
 }

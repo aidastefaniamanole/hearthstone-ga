@@ -95,8 +95,7 @@ public class HearthstoneSpark {
 
 	public static GeneticDeck generateDeck(String heroClass, List<GeneticCard> cards) {
 		Random rand = new Random();
-		GeneticDeck deck = new GeneticDeck();
-		deck.setHeroClass(heroClass);
+		GeneticDeck deck = new GeneticDeck(heroClass);
 
 		for (int i = 0; i < GeneticDeck.deckSize; i++) {
 			Integer index = rand.nextInt(cards.size());
@@ -108,6 +107,7 @@ public class HearthstoneSpark {
 			deck.cards.add(card);
 		}
 
+		System.out.println(deck.toString());
 		return deck;
 	}
 

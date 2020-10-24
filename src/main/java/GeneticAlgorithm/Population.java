@@ -114,10 +114,10 @@ public class Population {
 
 		// perform one point cross
 		int crossPoint = rand.nextInt(GeneticDeck.deckSize);
-		GeneticDeck offspring1 = new GeneticDeck();
+		GeneticDeck offspring1 = new GeneticDeck(parent1.heroClass);
 		offspring1.getCards().addAll(parent1.getCards().subList(0, crossPoint));
 		offspring1.getCards().addAll(parent2.getCards().subList(crossPoint + 1, GeneticDeck.deckSize));
-		GeneticDeck offspring2 = new GeneticDeck();
+		GeneticDeck offspring2 = new GeneticDeck(parent1.heroClass);
 		offspring2.getCards().addAll(parent2.getCards().subList(0, crossPoint));
 		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint + 1, GeneticDeck.deckSize));
 

@@ -14,6 +14,11 @@ public class GeneticDeck {
 	public Double fitness;
 	public String heroClass;
 
+	public GeneticDeck(String heroClass) {
+		this.cards = new ArrayList<GeneticCard>();
+		this.heroClass = heroClass;
+	}
+
 	public static int getDeckSize() {
 		return deckSize;
 	}
@@ -77,6 +82,16 @@ public class GeneticDeck {
 
 	public void setFitness(Double fitness) {
 		this.fitness = fitness;
+	}
+
+	@Override
+	public String toString() {
+		String deck = "[ ";
+		for (GeneticCard card : cards) {
+			deck += card.toString() + " ";
+		}
+		deck += "]";
+		return deck;
 	}
 
 	// TODO: mana curve
