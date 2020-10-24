@@ -65,11 +65,7 @@ public class GeneticDeck implements Serializable {
 	public boolean checkCorrectness() {
 		for (GeneticCard card : cards) {
 			Integer frequency = Collections.frequency(cards, card);
-<<<<<<< HEAD
 			Boolean isCorrect = card.getRarity().equals("LEGENDARY") ? frequency < 2 : frequency < 3;
-=======
-			Boolean isCorrect = card.getRarity().equals("LEGENDARY") ? frequency < 1 : frequency < 2;
->>>>>>> 23547221fb188e5a377c01c2f56393d8ac94cdb7
 			if (!isCorrect) {
 				return false;
 			}
