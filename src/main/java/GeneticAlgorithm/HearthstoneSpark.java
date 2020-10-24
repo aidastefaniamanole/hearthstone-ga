@@ -13,6 +13,7 @@ import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.spark.SparkConf;
 import org.apache.spark.SparkContext;
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SQLContext;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -30,13 +31,16 @@ import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER;
 
 public class HearthstoneSpark {
 	private static final Logger logger = LoggerFactory.getLogger(HearthstoneSpark.class);
+	private static final Integer noPopulations = 2;
+	private static final Integer populationSize = 20;
+
 	public static String catalog = "{" +
 			"\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"}," +
 			"\"rowkey\":\"key\"," +
 			"\"columns\":{" +
 			"\"rowkey\":{\"cf\":\"rowkey\", \"col\":\"key\", \"type\":\"string\"}," +
 			"\"heroClass\":{\"cf\":\"info\", \"col\":\"heroClass\", \"type\":\"string\"}," +
-			"\"baseManaCost\":{\"cf\":\"info\", \"col\":\"baseManaCost\", \"type\":\"string\"}," +
+			"\"baseManaCost\":{\"cf\":\"info\", \"col\":\"baseManaCost\", \"type\":\"long\"}," +
 			"\"cardType\":{\"cf\":\"info\", \"col\":\"cardType\", \"type\":\"string\"}," +
 			"\"name\":{\"cf\":\"info\", \"col\":\"name\", \"type\":\"string\"}," +
 			"\"rarity\":{\"cf\":\"info\", \"col\":\"rarity\", \"type\":\"string\"}" +
@@ -76,9 +80,9 @@ public class HearthstoneSpark {
 			// Table on which different commands have to be run.
 			Table tableName = connection.getTable(TableName.valueOf("cards"));
 			for (GeneticCard card : cards) {
-				Put insHBase = new Put(Bytes.toBytes(card.getId()));
+				Put insHBase = new Put(Bytes.toBytes(card.getRowkey()));
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("heroClass"), Bytes.toBytes(card.getHeroClass()));
-				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("baseManaCost"), Bytes.toBytes(card.getBaseManaCost().toString()));
+				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("baseManaCost"), Bytes.toBytes(card.getBaseManaCost()));
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("cardType"), Bytes.toBytes(card.getCardType()));
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("name"), Bytes.toBytes(card.getName()));
 				insHBase.addColumn(Bytes.toBytes("info"), Bytes.toBytes("rarity"), Bytes.toBytes(card.getRarity()));
@@ -89,16 +93,50 @@ public class HearthstoneSpark {
 		}
 	}
 
-	public static void initPopulation(SQLContext sqlContext, String heroClass) {
+	public static GeneticDeck generateDeck(String heroClass, Dataset dataset) {
+		Random rand = new Random();
+		GeneticDeck deck = new GeneticDeck();
+		deck.setHeroClass(heroClass);
+
+		Long datasetSize = dataset.count();
+		List cardList = dataset.collectAsList();
+		for (int i = 0; i < GeneticDeck.deckSize; i++) {
+			Long randCard = rand.nextLong() % datasetSize;
+			Object elem = cardList.get(randCard.intValue());
+
+
+
+		}
+
+		return deck;
+	}
+
+	public static ArrayList<Population> initPopulations(SQLContext sqlContext, String heroClass) {
 		Map<String, String> optionsMap = new HashMap<>();
 
 		optionsMap.put("catalog", catalog);
 		Dataset dataset = sqlContext.read().options(optionsMap)
 				.format("org.apache.spark.sql.execution.datasources.hbase").load();
 
-		dataset.filter(dataset.col("heroClass").equalTo(heroClass).or(dataset.col("heroClass").equalTo("ANY"))).show();
+		Dataset datasetFiltered = dataset.filter(dataset.col("heroClass")
+				.equalTo(heroClass).or(dataset.col("heroClass").equalTo("ANY")));
 
+		datasetFiltered.show(10);
 
+		Dataset<GeneticCard> ds = datasetFiltered.as(Encoders.kryo(GeneticCard.class));
+		List<GeneticCard> cardList = ds.collectAsList();
+
+		// generate noPopulations * populationSize randomly build decks with the filtered cards
+		ArrayList<Population> populations = new ArrayList<>();
+		for (int i = 0; i < noPopulations; i++) {
+			Population population = new Population(populationSize);
+			for (int j = 0; j < populationSize; j++) {
+				population.addOrganism(generateDeck(heroClass, datasetFiltered));
+			}
+			populations.add(population);
+		}
+
+		return populations;
 	}
 
 	public static void main(String[] args) {
@@ -122,7 +160,9 @@ public class HearthstoneSpark {
 			e.printStackTrace();
 		}
 
-		System.out.println(heroClass);
-		initPopulation(sqlContext, heroClass);
+		logger.info("Generate decks for hero", heroClass);
+		ArrayList<Population> populations = initPopulations(sqlContext, heroClass);
+
+		// TODO MapReduce
 	}
 }

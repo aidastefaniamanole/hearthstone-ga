@@ -122,7 +122,7 @@ public class MetaStoneSim {
     }
 
     private static Deck adaptToMetaStone(GeneticDeck deck) {
-        List<String> deckIds = deck.getCards().stream().map(GeneticCard::getId).collect(Collectors.toList());
+        List<String> deckIds = deck.getCards().stream().map(GeneticCard::getRowkey).collect(Collectors.toList());
         return DeckProxy.parseStandardDeck("CustomDeck", HeroClass.getEnumFromValue(deck.getHeroClass().toString()), deckIds);
 
     }

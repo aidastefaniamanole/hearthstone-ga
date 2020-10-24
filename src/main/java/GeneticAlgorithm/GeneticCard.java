@@ -2,27 +2,31 @@ package GeneticAlgorithm;
 
 import org.json.simple.JSONObject;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class GeneticCard {
+public class GeneticCard implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private String name;
 	private Long baseManaCost;
 	private String heroClass;
 	private String cardType;
-	private String id;
+	private String rowkey;
 	private String rarity;
 
-	public GeneticCard(JSONObject cardInfo, String id) {
+	public GeneticCard() {}
+
+	public GeneticCard(JSONObject cardInfo, String rowkey) {
 		this.name = (String) cardInfo.get("name");
 		this.baseManaCost = (Long) cardInfo.get("baseManaCost");
 		this.heroClass = (String) cardInfo.get("heroClass");
 		this.cardType = (String) cardInfo.get("type");
 		this.rarity = (String) cardInfo.get("rarity");
-		this.id = id;
+		this.rowkey = rowkey;
 	}
 
-	public String getId() {
-		return id;
+	public String getRowkey() {
+		return rowkey;
 	}
 
 	public Long getBaseManaCost() {
@@ -38,6 +42,30 @@ public class GeneticCard {
 	}
 
 	public String getRarity() { return  rarity; }
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setBaseManaCost(Long baseManaCost) {
+		this.baseManaCost = baseManaCost;
+	}
+
+	public void setHeroClass(String heroClass) {
+		this.heroClass = heroClass;
+	}
+
+	public void setCardType(String cardType) {
+		this.cardType = cardType;
+	}
+
+	public void setRowkey(String rowKey) {
+		this.rowkey = rowKey;
+	}
+
+	public void setRarity(String rarity) {
+		this.rarity = rarity;
+	}
 
 	@Override
 	public boolean equals(Object o) {
@@ -59,22 +87,4 @@ public class GeneticCard {
 		return name;
 	}
 
-	public enum HeroClass {
-		DRUID,
-		HUNTER,
-		MAGE,
-		PALADIN,
-		PRIEST,
-		ROGUE,
-		SHAMAN,
-		WARLOCK,
-		WARRIOR,
-		ANY
-	}
-
-	public enum CardType {
-		MINION,
-		SPELL,
-		WEAPON
-	}
 }
