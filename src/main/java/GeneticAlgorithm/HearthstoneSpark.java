@@ -166,17 +166,10 @@ public class HearthstoneSpark {
 		logger.info("Generate decks for hero {}", heroClass);
 		List<Population> populations = initPopulations(sqlContext, heroClass);
 
-		List<Population> result = new ArrayList<>();
-
-		populations.forEach(x -> Evaluator.calculateFitness(x.getMembers()));
-
-		populations.forEach(x -> result.add(x.evolve()));
-
-		logger.info("ceva");
-
 		// run the GA in parallel
 		JavaRDD<Population> populationsRDD = sc.parallelize(populations);
 		populationsRDD.foreach(x -> {
+			Evaluator.calculateFitness(x.getMembers());
 			for (int i = 0; i < noGenerations; i++) {
 				x = x.evolve();
 			}
@@ -193,11 +186,14 @@ public class HearthstoneSpark {
 
 		// create a list of tuples (fitness, deck) and distribute it
 		List<Tuple2<Double, GeneticDeck>> tuplesList = new ArrayList<>();
-		lists.forEach(x -> tuplesList.addAll(x));
+		lists.forEach(tuplesList::addAll);
 
 		JavaPairRDD<Double, GeneticDeck> tuples = sc.parallelizePairs(tuplesList);
 		List<Tuple2<Double, GeneticDeck>> topTenDecks = tuples.sortByKey(false).takeOrdered(10);
 
+		topTenDecks.forEach(x -> {
+			System.out.println("Win rate" + x._1);
+			System.out.println("Cards" + x._2.toString());
+		});
 	}
-
 }

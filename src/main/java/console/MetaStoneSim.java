@@ -130,7 +130,7 @@ public class MetaStoneSim {
     public static PlayersGameStatistics simulate(GeneticDeck deck) {
         Deck d1 = adaptToMetaStone(deck);
         d1.setName("custom");
-        Deck d2 = decks.get(new Random().nextInt(decks.size()));
+        Deck d2 = decks.stream().filter(d -> d.getName().equals("Burgle Rogue")).findFirst().get();
 
         GameConfig gc = GetGameConfig(d1, d2, deckFormat, 2, 2);
 
