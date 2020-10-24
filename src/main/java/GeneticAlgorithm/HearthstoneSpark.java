@@ -93,19 +93,19 @@ public class HearthstoneSpark {
 		}
 	}
 
-	public static GeneticDeck generateDeck(String heroClass, Dataset dataset) {
+	public static GeneticDeck generateDeck(String heroClass, List<GeneticCard> cards) {
 		Random rand = new Random();
 		GeneticDeck deck = new GeneticDeck();
 		deck.setHeroClass(heroClass);
 
-		Long datasetSize = dataset.count();
-		List cardList = dataset.collectAsList();
 		for (int i = 0; i < GeneticDeck.deckSize; i++) {
-			Long randCard = rand.nextLong() % datasetSize;
-			Object elem = cardList.get(randCard.intValue());
-
-
-
+			Integer index = rand.nextInt(cards.size());
+			GeneticCard card = cards.get(index);
+			while (!deck.canAddCardToDeck(card)) {
+				index = rand.nextInt(cards.size());
+				card = cards.get(index);
+			}
+			deck.cards.add(card);
 		}
 
 		return deck;
@@ -121,9 +121,9 @@ public class HearthstoneSpark {
 		Dataset datasetFiltered = dataset.filter(dataset.col("heroClass")
 				.equalTo(heroClass).or(dataset.col("heroClass").equalTo("ANY")));
 
-		datasetFiltered.show(10);
+		// datasetFiltered.show(10);
 
-		Dataset<GeneticCard> ds = datasetFiltered.as(Encoders.kryo(GeneticCard.class));
+		Dataset<GeneticCard> ds = datasetFiltered.as(Encoders.bean(GeneticCard.class));
 		List<GeneticCard> cardList = ds.collectAsList();
 
 		// generate noPopulations * populationSize randomly build decks with the filtered cards
@@ -131,7 +131,7 @@ public class HearthstoneSpark {
 		for (int i = 0; i < noPopulations; i++) {
 			Population population = new Population(populationSize);
 			for (int j = 0; j < populationSize; j++) {
-				population.addOrganism(generateDeck(heroClass, datasetFiltered));
+				population.addOrganism(generateDeck(heroClass, cardList));
 			}
 			populations.add(population);
 		}

@@ -59,7 +59,7 @@ public class GeneticDeck {
 	public int containsHowMany(GeneticCard card) {
 		int count = 0;
 		for (GeneticCard cardInDeck : cards) {
-			if (card.getRowkey().equals(cardInDeck.getRowkey())) {
+			if (card.equals(cardInDeck)) {
 				count++;
 			}
 		}
