@@ -123,15 +123,16 @@ public class MetaStoneSim {
 
     private static Deck adaptToMetaStone(GeneticDeck deck) {
         List<String> deckIds = deck.getCards().stream().map(GeneticCard::getRowkey).collect(Collectors.toList());
-        return DeckProxy.parseStandardDeck("CustomDeck", HeroClass.getEnumFromValue(deck.getHeroClass().toString()), deckIds);
+        return DeckProxy.parseStandardDeck("CustomDeck", HeroClass.getEnumFromValue(deck.getHeroClass()), deckIds);
 
     }
 
     public static PlayersGameStatistics simulate(GeneticDeck deck) {
         Deck d1 = adaptToMetaStone(deck);
+        d1.setName("custom");
         Deck d2 = decks.get(new Random().nextInt(decks.size()));
 
-        GameConfig gc = GetGameConfig(d1, d2, deckFormat, 2, 20);
+        GameConfig gc = GetGameConfig(d1, d2, deckFormat, 2, 2);
 
         return Simulate(gc);
     }
