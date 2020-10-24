@@ -139,12 +139,21 @@ public class Population implements Serializable {
 		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint, GeneticDeck.deckSize));
 
 		ArrayList<GeneticDeck> result = new ArrayList<>();
+<<<<<<< HEAD
 		//if (offspring1.checkCorrectness()) {
 			result.add(offspring1);
 		//}
 		//if (offspring2.checkCorrectness()) {
 			result.add(offspring2);
 		//}
+=======
+		if (offspring1.checkCorrectness()) {
+			result.add(offspring1);
+		}
+		if (offspring2.checkCorrectness()) {
+			result.add(offspring2);
+		}
+>>>>>>> 23547221fb188e5a377c01c2f56393d8ac94cdb7
 		return result;
 	}
 
