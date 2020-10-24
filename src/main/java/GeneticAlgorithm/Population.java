@@ -20,8 +20,12 @@ public class Population {
 
 	public Population(Integer populationSize) {
 		this.populationSize = populationSize;
-		this.members = new ArrayList<>(populationSize);
+		this.members = new ArrayList<>();
 		this.rand = new Random();
+	}
+
+	public ArrayList<GeneticDeck> getMembers() {
+		return members;
 	}
 
 	/**
@@ -33,7 +37,7 @@ public class Population {
 		members.add(deck);
 	}
 
-	public Population evolve(Evaluator evaluator) {
+	public Population evolve() {
 		Population newGeneration = new Population(this.populationSize);
 
 		// select K individuals
@@ -117,7 +121,7 @@ public class Population {
 		GeneticDeck offspring1 = new GeneticDeck(parent1.heroClass);
 		offspring1.getCards().addAll(parent1.getCards().subList(0, crossPoint));
 		offspring1.getCards().addAll(parent2.getCards().subList(crossPoint + 1, GeneticDeck.deckSize));
-		GeneticDeck offspring2 = new GeneticDeck(parent1.heroClass);
+		GeneticDeck offspring2 = new GeneticDeck(parent2.heroClass);
 		offspring2.getCards().addAll(parent2.getCards().subList(0, crossPoint));
 		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint + 1, GeneticDeck.deckSize));
 

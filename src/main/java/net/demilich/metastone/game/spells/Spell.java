@@ -15,6 +15,7 @@ public abstract class Spell {
 	public void cast(GameContext context, Player player, SpellDesc desc, Entity source, List<Entity> targets) {
 		// no target specified, cast the spell once with target NULL
 		if (targets == null) {
+
 			castForPlayer(context, player, desc, source, null);
 			return;
 		}

@@ -26,6 +26,7 @@ import net.demilich.metastone.game.spells.desc.SpellDesc;
 import net.demilich.metastone.game.spells.desc.filter.EntityFilter;
 import net.demilich.metastone.game.spells.desc.filter.Operation;
 import net.demilich.metastone.game.targeting.EntityReference;
+import net.demilich.metastone.game.targeting.TargetSelection;
 
 public class SpellUtils {
 
@@ -114,13 +115,15 @@ public class SpellUtils {
 		}
 	}
 
-	public static DiscoverAction getSpellDiscover(GameContext context, Player player, SpellDesc desc, List<SpellDesc> spells) {
+	public static DiscoverAction getSpellDiscover(GameContext context, Player player, EntityReference source, SpellDesc desc, List<SpellDesc> spells) {
 		List<GameAction> discoverActions = new ArrayList<>();
 		for (SpellDesc spell : spells) {
 			DiscoverAction discover = DiscoverAction.createDiscover(spell);
 			discover.setName(spell.getString(SpellArg.NAME));
 			discover.setDescription(spell.getString(SpellArg.DESCRIPTION));
 			discover.setActionSuffix((String) spell.get(SpellArg.NAME));
+			discover.setSource(source);
+			discover.setTargetRequirement((TargetSelection) spell.get(SpellArg.TARGET_SELECTION));
 			discoverActions.add(discover);
 		}
 		
@@ -129,6 +132,10 @@ public class SpellUtils {
 		} else {
 			return (DiscoverAction) player.getBehaviour().requestAction(context, player, discoverActions);
 		}
+	}
+
+	public static DiscoverAction getSpellDiscover(GameContext context, Player player, SpellDesc desc, List<SpellDesc> spells) {
+		return getSpellDiscover(context, player, null, desc, spells);
 	}
 
 	public static Card getRandomCard(CardCollection source, Predicate<Card> filter) {

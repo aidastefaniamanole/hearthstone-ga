@@ -107,7 +107,6 @@ public class HearthstoneSpark {
 			deck.cards.add(card);
 		}
 
-		System.out.println(deck.toString());
 		return deck;
 	}
 
@@ -160,8 +159,16 @@ public class HearthstoneSpark {
 			e.printStackTrace();
 		}
 
-		logger.info("Generate decks for hero", heroClass);
-		ArrayList<Population> populations = initPopulations(sqlContext, heroClass);
+		logger.info("Generate decks for hero {}", heroClass);
+		List<Population> populations = initPopulations(sqlContext, heroClass);
+
+		List<Population> result = new ArrayList<>();
+
+		populations.forEach(x -> Evaluator.calculateFitness(x.getMembers()));
+
+		populations.forEach(x -> result.add(x.evolve()));
+
+		logger.info("ceva");
 
 		// TODO MapReduce
 	}
