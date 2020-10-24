@@ -5,10 +5,12 @@ import net.demilich.metastone.game.cards.Rarity;
 import net.demilich.metastone.game.decks.Deck;
 import net.demilich.metastone.game.logic.GameLogic;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Objects;
 
-public class GeneticDeck {
+public class GeneticDeck implements Serializable {
+	private static final long serialVersionUID = 1L;
 	public static final int deckSize = 30;
 	public ArrayList<GeneticCard> cards;
 	public Double fitness;
