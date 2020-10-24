@@ -11,7 +11,9 @@ import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Table;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.spark.SparkConf;
-import org.apache.spark.SparkContext;
+import org.apache.spark.api.java.JavaPairRDD;
+import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SQLContext;
@@ -20,6 +22,7 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import scala.Tuple2;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -33,6 +36,7 @@ public class HearthstoneSpark {
 	private static final Logger logger = LoggerFactory.getLogger(HearthstoneSpark.class);
 	private static final Integer noPopulations = 2;
 	private static final Integer populationSize = 20;
+	private static final Integer noGenerations = 10;
 
 	public static String catalog = "{" +
 			"\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"}," +
@@ -141,7 +145,7 @@ public class HearthstoneSpark {
 	public static void main(String[] args) {
 		// simple spark configuration where everything runs in process using 1 worker thread
 		SparkConf sparkConf = new SparkConf().setAppName("Hearthstone-GA").setMaster("local[1]");
-		SparkContext sc = new SparkContext(sparkConf);
+		JavaSparkContext sc = new JavaSparkContext(sparkConf);
 		// default HBase configuration for connecting to localhost on default port
 		Configuration conf = HBaseConfiguration.create();
 		// the entry point interface for the Spark SQL processing module
@@ -170,6 +174,30 @@ public class HearthstoneSpark {
 
 		logger.info("ceva");
 
-		// TODO MapReduce
+		// run the GA in parallel
+		JavaRDD<Population> populationsRDD = sc.parallelize(populations);
+		populationsRDD.foreach(x -> {
+			for (int i = 0; i < noGenerations; i++) {
+				x = x.evolve();
+			}
+		});
+
+		List<List<Tuple2<Double, GeneticDeck>>> lists = populationsRDD.map(x -> {
+			List<Tuple2<Double, GeneticDeck>> pairs = new ArrayList<>();
+			for (GeneticDeck deck : x.getMembers()) {
+				pairs.add(new Tuple2<>(deck.getFitness(), deck));
+			}
+
+			return pairs;
+		}).collect();
+
+		// create a list of tuples (fitness, deck) and distribute it
+		List<Tuple2<Double, GeneticDeck>> tuplesList = new ArrayList<>();
+		lists.forEach(x -> tuplesList.addAll(x));
+
+		JavaPairRDD<Double, GeneticDeck> tuples = sc.parallelizePairs(tuplesList);
+		List<Tuple2<Double, GeneticDeck>> topTenDecks = tuples.sortByKey(false).takeOrdered(10);
+
 	}
+
 }
