@@ -39,6 +39,7 @@ public class HearthstoneSpark {
 
 	private static SQLContext sqlContext;
 
+
 	public static String catalog = "{" +
 			"\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"}," +
 			"\"rowkey\":\"key\"," +
