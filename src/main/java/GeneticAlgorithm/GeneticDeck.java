@@ -14,12 +14,13 @@ import java.util.*;
 
 public class GeneticDeck {
 	public static final int deckSize = 30;
-	public ArrayList<GeneticCard> cards;
+	private static final Random rand = new Random();
+	public List<GeneticCard> cards;
 	public Double fitness;
 	public String heroClass;
 
 	public GeneticDeck(String heroClass) {
-		this.cards = new ArrayList<GeneticCard>();
+		this.cards = new ArrayList<>();
 		this.heroClass = heroClass;
 	}
 
@@ -27,11 +28,11 @@ public class GeneticDeck {
 		return deckSize;
 	}
 
-	public ArrayList<GeneticCard> getCards() {
+	public List<GeneticCard> getCards() {
 		return cards;
 	}
 
-	public void setCards(ArrayList<GeneticCard> cards) {
+	public void setCards(List<GeneticCard> cards) {
 		this.cards = cards;
 	}
 
@@ -58,16 +59,11 @@ public class GeneticDeck {
 	public int hashCode() {
 		return Objects.hash(cards, fitness, heroClass);
 	}
-	
-	public void checkCorrectnessAndFix() {
-		Map<String, String> optionsMap = new HashMap<>();
 
-		optionsMap.put("catalog", HearthstoneSpark.catalog);
-		Dataset dataset = HearthstoneSpark.getSQLContext().read().options(optionsMap)
-				.format("org.apache.spark.sql.execution.datasources.hbase").load();
-
-		Dataset dataset1 = dataset.filter(dataset.col("heroClass")
-				.equalTo(heroClass).or(dataset.col("heroClass").equalTo("ANY")));
+	public boolean checkCorrectnessAndFix() {
+		Dataset data = HearthstoneSpark.dataset;
+		Dataset dataset1 = data.filter(data.col("heroClass")
+				.equalTo(heroClass).or(data.col("heroClass").equalTo("ANY")));
 
 		HashMap<GeneticCard, Integer> toRemove = new HashMap<>();
 
@@ -80,22 +76,31 @@ public class GeneticDeck {
 			}
 		}
 
+		try {
 		for (Map.Entry<GeneticCard, Integer> entry : toRemove.entrySet()) {
 			for (int i = 0; i < entry.getValue(); i++) {
 				cards.remove(entry.getKey());
 			}
-			for (int i = 0; i < entry.getValue(); i++) {
-				List<GeneticCard> cardList = dataset1.filter(dataset.col("baseManaCost")
-						.equalTo(entry.getKey().getBaseManaCost())).as(Encoders.bean(GeneticCard.class)).collectAsList();
-				System.out.println("Replacement cards " + cardList.size());
-				for (GeneticCard gCard : cardList) {
-					if (canAddCardToDeck(gCard)) {
-						cards.add(gCard);
-						break;
-					}
+
+			List<GeneticCard> cardList = new LinkedList<GeneticCard>(dataset1.filter(data.col("baseManaCost")
+					.equalTo(entry.getKey().getBaseManaCost())).as(HearthstoneSpark.geneticBean).collectAsList());
+
+			for (int i = 0; (i < entry.getValue()) && (cards.size() != deckSize) && !cardList.isEmpty();) {
+				int next = rand.nextInt(cardList.size());
+				GeneticCard gCard = cardList.get(next);
+				if (canAddCardToDeck(gCard)) {
+					cards.add(gCard);
+					i++;
 				}
+				cardList.remove(gCard);
 			}
+		} }
+		catch (Exception e) {
+			System.out.println("da");
+
 		}
+
+		return cards.size() == deckSize;
 	}
 
 	public int containsHowMany(GeneticCard card) {
@@ -117,12 +122,12 @@ public class GeneticDeck {
 
 	@Override
 	public String toString() {
-		String deck = "[ ";
+		StringBuilder deck = new StringBuilder("[ ");
 		for (GeneticCard card : cards) {
-			deck += card.toString() + " ";
+			deck.append(card.toString()).append(" ");
 		}
-		deck += "]";
-		return deck;
+		deck.append("]");
+		return deck.toString();
 	}
 
 	// TODO: mana curve

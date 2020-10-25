@@ -15,6 +15,7 @@ import org.apache.spark.SparkConf;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.sql.Dataset;
+import org.apache.spark.sql.Encoder;
 import org.apache.spark.sql.Encoders;
 import org.apache.spark.sql.SQLContext;
 import org.json.simple.JSONObject;
@@ -34,10 +35,15 @@ import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER;
 public class HearthstoneSpark {
 	private static final Logger logger = LoggerFactory.getLogger(HearthstoneSpark.class);
 	private static final Integer noPopulations = 2;
-	private static final Integer populationSize = 20;
-	private static final Integer noGenerations = 10;
 
+	private static final Integer populationSize = 10; //20
+	private static final Integer noGenerations = 25; //10
+
+	private static final Random rand = new Random();
 	private static SQLContext sqlContext;
+	public static final Encoder<GeneticCard> geneticBean = Encoders.bean(GeneticCard.class);
+
+	public static Dataset dataset;
 
 
 	public static String catalog = "{" +
@@ -66,7 +72,6 @@ public class HearthstoneSpark {
 						|| jsonObject.get("type").equals("HERO_POWER")) {
 					continue;
 				}
-
 				cards.add(new GeneticCard(jsonObject, resource.fileName.split("\\.")[0]));
 			}
 		} catch (URISyntaxException | IOException | ParseException e) {
@@ -100,15 +105,32 @@ public class HearthstoneSpark {
 	}
 
 	public static GeneticDeck generateDeck(String heroClass, List<GeneticCard> cards) {
-		Random rand = new Random();
+		return getGeneticDeck(heroClass, cards);
+	}
+
+	private static List<GeneticCard> getAllCards(String heroClass) {
+		Dataset datasetFiltered = dataset.filter(dataset.col("heroClass")
+				.equalTo(heroClass).or(dataset.col("heroClass").equalTo("ANY")));
+
+		Dataset<GeneticCard> ds = datasetFiltered.as(geneticBean);
+		return ds.collectAsList();
+	}
+
+	public static GeneticDeck generateDeck(String heroClass) {
+		List<GeneticCard> cardList = getAllCards(heroClass);
+
+		return getGeneticDeck(heroClass, cardList);
+	}
+
+	private static GeneticDeck getGeneticDeck(String heroClass, List<GeneticCard> cardList) {
 		GeneticDeck deck = new GeneticDeck(heroClass);
 
 		for (int i = 0; i < GeneticDeck.deckSize; i++) {
-			Integer index = rand.nextInt(cards.size());
-			GeneticCard card = cards.get(index);
+			Integer index = rand.nextInt(cardList.size());
+			GeneticCard card = cardList.get(index);
 			while (!deck.canAddCardToDeck(card)) {
-				index = rand.nextInt(cards.size());
-				card = cards.get(index);
+				index = rand.nextInt(cardList.size());
+				card = cardList.get(index);
 			}
 			deck.cards.add(card);
 		}
@@ -116,20 +138,8 @@ public class HearthstoneSpark {
 		return deck;
 	}
 
-	public static ArrayList<Population> initPopulations(SQLContext sqlContext, String heroClass) {
-		Map<String, String> optionsMap = new HashMap<>();
-
-		optionsMap.put("catalog", catalog);
-		Dataset dataset = sqlContext.read().options(optionsMap)
-				.format("org.apache.spark.sql.execution.datasources.hbase").load();
-
-		Dataset datasetFiltered = dataset.filter(dataset.col("heroClass")
-				.equalTo(heroClass).or(dataset.col("heroClass").equalTo("ANY")));
-
-		// datasetFiltered.show(10);
-
-		Dataset<GeneticCard> ds = datasetFiltered.as(Encoders.bean(GeneticCard.class));
-		List<GeneticCard> cardList = ds.collectAsList();
+	public static ArrayList<Population> initPopulations(String heroClass) {
+		List<GeneticCard> cardList = getAllCards(heroClass);
 
 		// generate noPopulations * populationSize randomly build decks with the filtered cards
 		ArrayList<Population> populations = new ArrayList<>();
@@ -159,6 +169,11 @@ public class HearthstoneSpark {
 
 		addCardsToHbase(conf);
 
+		dataset = HearthstoneSpark.getSQLContext().read().options(new HashMap<String, String>(){
+			{
+				put("catalog", catalog);
+			}}).format("org.apache.spark.sql.execution.datasources.hbase").load();
+
 		String heroClass = "";
 		// read client config
 		try {
@@ -170,7 +185,7 @@ public class HearthstoneSpark {
 		}
 
 		logger.info("Generate decks for hero {}", heroClass);
-		List<Population> populations = initPopulations(sqlContext, heroClass);
+		List<Population> populations = initPopulations(heroClass);
 		logger.info("Initial population complete");
 
 		populations.forEach(x -> {
