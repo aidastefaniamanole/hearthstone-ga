@@ -34,8 +34,8 @@ import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER;
 public class HearthstoneSpark {
 	private static final Logger logger = LoggerFactory.getLogger(HearthstoneSpark.class);
 	private static final Integer noPopulations = 2;
-	private static final Integer populationSize = 20; //20
-	private static final Integer noGenerations = 10; //10
+	private static final Integer populationSize = 20;
+	private static final Integer noGenerations = 10;
 
 	private static SQLContext sqlContext;
 
@@ -149,7 +149,7 @@ public class HearthstoneSpark {
 
 	public static void main(String[] args) {
 		// simple spark configuration where everything runs in process using 1 worker thread
-		SparkConf sparkConf = new SparkConf().setAppName("Hearthstone-GA").setMaster("local[2]");
+		SparkConf sparkConf = new SparkConf().setAppName("Hearthstone-GA").setMaster("local[1]");
 		JavaSparkContext sc = new JavaSparkContext(sparkConf);
 		// default HBase configuration for connecting to localhost on default port
 		Configuration conf = HBaseConfiguration.create();
