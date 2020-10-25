@@ -132,11 +132,26 @@ public class MetaStoneSim {
         Deck d1 = adaptToMetaStone(deck);
         d1.setName("custom");
         //Deck d2 = decks.stream().filter(d -> d.getName().equals("Burgle Rogue")).findFirst().get();
-        Deck d2 = decks.get(rand.nextInt(decks.size()));
+        Deck d2 = decks.get(new Random().nextInt(decks.size()));
 
         GameConfig gc = GetGameConfig(d1, d2, deckFormat, 1, 20);
 
         return Simulate(gc);
+    }
+
+    public static GameStatistics simulateAllDecksSpark(GeneticDeck deck, Integer simulationsCount) {
+        Deck d1 = adaptToMetaStone(deck);
+        d1.setName("custom");
+        //Deck d2 = decks.stream().filter(d -> d.getName().equals("Burgle Rogue")).findFirst().get();
+        //Deck d2 = decks.get(rand.nextInt(decks.size()));
+        GameStatistics custom = new GameStatistics();
+
+        decks.forEach(x -> {
+            GameConfig gc = GetGameConfig(d1, x, deckFormat, 1, simulationsCount);
+            custom.merge(Simulate(gc).getPlayer1Statistics());
+        });
+
+        return custom;
     }
 
     public static PlayersGameStatistics simulate(GeneticDeck deck, int aiLevel, int simulationsCount) {
