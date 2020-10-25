@@ -3,10 +3,10 @@ name := "spark_hearthstone"
 version := "1.0"
 
 // Do not append Scala versions to the generated artifacts
-crossPaths := false
+scalaVersion := "2.11.8"
 
 // This forbids including Scala related libraries into the dependency
-autoScalaLibrary := false
+run := Defaults.runTask(fullClasspath in Runtime, mainClass in run in Compile, runner in run).evaluated
 
 resolvers += "com.hortonworks" at "https://repo.hortonworks.com/content/repositories/releases/"
 

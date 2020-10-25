@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 public class Population implements Serializable {
 	private static final long serialVersionUID = 1L;
+
 	// [2-4]
 	private int tournamentRounds = 4;
 	private Integer populationSize;
@@ -139,16 +140,16 @@ public class Population implements Serializable {
 		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint, GeneticDeck.deckSize));
 
 		ArrayList<GeneticDeck> result = new ArrayList<>();
-		if (offspring1.checkCorrectnessAndFix()) {
+		//if (offspring1.checkCorrectnessAndFix()) {
 			result.add(offspring1);
-		} else {
-			result.add(HearthstoneSpark.generateDeck(parent1.heroClass));
-		}
-		if (offspring2.checkCorrectnessAndFix()) {
+		//} else {
+		//	result.add(HearthstoneSpark.generateDeck(parent1.heroClass));
+		//}
+		//if (offspring2.checkCorrectnessAndFix()) {
 			result.add(offspring2);
-		} else {
-			result.add(HearthstoneSpark.generateDeck(parent2.heroClass));
-		}
+		//} else {
+		//	result.add(HearthstoneSpark.generateDeck(parent2.heroClass));
+		//}
 
 		return result;
 	}

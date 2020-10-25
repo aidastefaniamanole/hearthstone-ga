@@ -1,5 +1,7 @@
 package GeneticAlgorithm;
 
+import console.DeckProxy;
+import console.MetaStoneSim;
 import net.demilich.metastone.utils.ResourceInputStream;
 import net.demilich.metastone.utils.ResourceLoader;
 import org.apache.hadoop.conf.Configuration;
@@ -31,11 +33,12 @@ import java.net.URISyntaxException;
 import java.util.*;
 
 import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER;
+import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER_PATH;
 
 public class HearthstoneSpark {
 	private static final Logger logger = LoggerFactory.getLogger(HearthstoneSpark.class);
-	private static final Integer noPopulations = 2;
 
+	private static final Integer noPopulations = 2;
 	private static final Integer populationSize = 10; //20
 	private static final Integer noGenerations = 25; //10
 
@@ -160,7 +163,7 @@ public class HearthstoneSpark {
 
 	public static void main(String[] args) {
 		// simple spark configuration where everything runs in process using 1 worker thread
-		SparkConf sparkConf = new SparkConf().setAppName("Hearthstone-GA").setMaster("local[1]");
+		SparkConf sparkConf = new SparkConf().setAppName("Hearthstone-GA").setMaster("local[2]");
 		JavaSparkContext sc = new JavaSparkContext(sparkConf);
 		// default HBase configuration for connecting to localhost on default port
 		Configuration conf = HBaseConfiguration.create();
