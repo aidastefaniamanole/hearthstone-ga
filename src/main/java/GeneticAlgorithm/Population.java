@@ -41,14 +41,16 @@ public class Population implements Serializable {
 		members.add(deck);
 	}
 
-	public Population evolve() {
+	public Population evolve(Integer simulationsCount) {
 		Population newGeneration = new Population(this.populationSize);
 
 		// select K individuals
 		// get e * K individuals with the highest fitness
 		members.sort(Comparator.comparing(GeneticDeck::getFitness).reversed());
 		int last = (int) (K * eliteP);
-		newGeneration.members.addAll(members.subList(0, last));
+		for (int i = 0; i < last; i++) {
+			newGeneration.members.add(members.get(i));
+		}
 
 		// get r * K random individuals to maintain diversity
 		members.subList(0, last).clear();
@@ -72,10 +74,12 @@ public class Population implements Serializable {
 		}
 
 		// compute fitness for new members and add the fittest K individuals to the new generation
-		Evaluator.calculateFitness(offsprings);
+		Evaluator.calculateFitness(offsprings, simulationsCount);
 
 		offsprings.sort(Comparator.comparing(GeneticDeck::getFitness).reversed());
-		newGeneration.members.addAll(offsprings.subList(0, Math.min(populationSize - K, offsprings.size())));
+		for (int i = 0; i < Math.min(populationSize - K, offsprings.size()); i++) {
+			newGeneration.members.add(offsprings.get(i));
+		}
 		return newGeneration;
 	}
 
@@ -133,11 +137,19 @@ public class Population implements Serializable {
 		// perform one point cross
 		int crossPoint = rand.nextInt(GeneticDeck.deckSize);
 		GeneticDeck offspring1 = new GeneticDeck(parent1.heroClass);
-		offspring1.getCards().addAll(parent1.getCards().subList(0, crossPoint));
-		offspring1.getCards().addAll(parent2.getCards().subList(crossPoint, GeneticDeck.deckSize));
+		for (int i = 0; i < crossPoint; i++) {
+			offspring1.getCards().add(parent1.getCards().get(i));
+		}
+		for (int i = crossPoint; i < GeneticDeck.deckSize; i++) {
+			offspring1.getCards().add(parent2.getCards().get(i));
+		}
 		GeneticDeck offspring2 = new GeneticDeck(parent2.heroClass);
-		offspring2.getCards().addAll(parent2.getCards().subList(0, crossPoint));
-		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint, GeneticDeck.deckSize));
+		for (int i = 0; i < crossPoint; i++) {
+			offspring2.getCards().add(parent2.getCards().get(i));
+		}
+		for (int i = crossPoint; i < GeneticDeck.deckSize; i++) {
+			offspring2.getCards().add(parent1.getCards().get(i));
+		}
 
 		ArrayList<GeneticDeck> result = new ArrayList<>();
 		//if (offspring1.checkCorrectnessAndFix()) {
@@ -160,7 +172,7 @@ public class Population implements Serializable {
 	 * @return
 	 */
 	public GeneticDeck select() {
-		ArrayList<GeneticDeck> tournament = new ArrayList<>(tournamentRounds);
+		List<GeneticDeck> tournament = new ArrayList<>();
 
 		for (int i = 0; i < tournamentRounds; i++) {
 			tournament.add(members.get(rand.nextInt(members.size())));

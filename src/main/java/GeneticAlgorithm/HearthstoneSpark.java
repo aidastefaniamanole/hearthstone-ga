@@ -1,7 +1,5 @@
 package GeneticAlgorithm;
 
-import console.DeckProxy;
-import console.MetaStoneSim;
 import net.demilich.metastone.utils.ResourceInputStream;
 import net.demilich.metastone.utils.ResourceLoader;
 import org.apache.hadoop.conf.Configuration;
@@ -38,16 +36,16 @@ import static net.demilich.metastone.game.cards.CardCatalogue.CARDS_FOLDER_PATH;
 public class HearthstoneSpark {
 	private static final Logger logger = LoggerFactory.getLogger(HearthstoneSpark.class);
 
-	private static final Integer noPopulations = 2;
-	private static final Integer populationSize = 10; //20
-	private static final Integer noGenerations = 25; //10
+	private static Integer noPopulations = 2;
+	private static Integer populationSize = 10;
+	private static Integer noGenerations = 25;
+	private static Integer simulationsCount = 20;
 
 	private static final Random rand = new Random();
 	private static SQLContext sqlContext;
 	public static final Encoder<GeneticCard> geneticBean = Encoders.bean(GeneticCard.class);
 
 	public static Dataset dataset;
-
 
 	public static String catalog = "{" +
 			"\"table\":{\"namespace\":\"default\", \"name\":\"cards\", \"tableCoder\":\"PrimitiveType\"}," +
@@ -187,26 +185,37 @@ public class HearthstoneSpark {
 			e.printStackTrace();
 		}
 
+		if (args.length > 1) {
+			noPopulations = Integer.parseInt(args[1]);
+			populationSize = Integer.parseInt(args[2]);
+			noGenerations = Integer.parseInt(args[3]);
+			simulationsCount = Integer.parseInt(args[4]);
+		}
+
 		logger.info("Generate decks for hero {}", heroClass);
 		List<Population> populations = initPopulations(heroClass);
 		logger.info("Initial population complete");
 
-		populations.forEach(x -> {
-			x.getMembers().forEach(y -> {
-				System.out.println("Win rate " + y.getFitness());
-				System.out.println("Cards\n" + y.getCards().toString());
-			});
-		});
+//		populations.forEach(x -> {
+//			x.getMembers().forEach(y -> {
+//				System.out.println("Win rate " + y.getFitness());
+//				System.out.println("Cards\n" + y.getCards().toString());
+//			});
+//		});
 
 		logger.info("Commence parallelization");
 		// run the GA in parallel
 		JavaRDD<Population> populationsRDD = sc.parallelize(populations);
 		populationsRDD = populationsRDD.map(x -> {
-			Evaluator.calculateFitness(x.getMembers());
+			Evaluator.calculateFitness(x.getMembers(), simulationsCount);
+			x.getMembers().forEach(y -> {
+				System.out.println("Win rate " + y.getFitness());
+				System.out.println("Cards\n" + y.getCards().toString());
+			});
 			Population var = x;
 			for (int i = 0; i < noGenerations; i++) {
 				logger.info("Evolve generation {}", i);
-				var = var.evolve();
+				var = var.evolve(simulationsCount);
 			}
 			return var;
 		});
@@ -233,6 +242,8 @@ public class HearthstoneSpark {
 			System.out.println("Win rate " + x.getFirst());
 			System.out.println("Cards\n" + x.getSecond().toString());
 		});
+
+		sc.close();
 	}
 }
 
