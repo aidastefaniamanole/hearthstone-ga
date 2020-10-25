@@ -28,3 +28,5 @@ excludeDependencies ++= Seq(
   ExclusionRule("org.slf4j", "slf4j-log4j12")
 )
 
+Compile/mainClass := Some("GeneticAlgorithm.HearthstoneSpark")
+
