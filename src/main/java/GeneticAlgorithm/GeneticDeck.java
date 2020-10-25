@@ -1,14 +1,6 @@
 package GeneticAlgorithm;
 
-import net.demilich.metastone.game.cards.Card;
-import net.demilich.metastone.game.cards.Rarity;
-import net.demilich.metastone.game.decks.Deck;
-import net.demilich.metastone.game.logic.GameLogic;
 import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Encoders;
-import org.apache.spark.sql.SQLContext;
-import org.jcodings.util.Hash;
-
 import java.io.Serializable;
 import java.util.*;
 
@@ -77,7 +69,6 @@ public class GeneticDeck implements Serializable{
 			}
 		}
 
-		try {
 		for (Map.Entry<GeneticCard, Integer> entry : toRemove.entrySet()) {
 			for (int i = 0; i < entry.getValue(); i++) {
 				cards.remove(entry.getKey());
@@ -95,10 +86,6 @@ public class GeneticDeck implements Serializable{
 				}
 				cardList.remove(gCard);
 			}
-		} }
-		catch (Exception e) {
-			System.out.println("da");
-
 		}
 
 		return cards.size() == deckSize;
@@ -130,7 +117,4 @@ public class GeneticDeck implements Serializable{
 		deck.append("]");
 		return deck.toString();
 	}
-
-	// TODO: mana curve
-
 }

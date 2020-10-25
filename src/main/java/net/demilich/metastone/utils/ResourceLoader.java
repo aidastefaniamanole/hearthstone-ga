@@ -91,9 +91,9 @@ public class ResourceLoader {
 	private static PathReference getPathFromResources(String sourceDir) throws URISyntaxException, IOException {
 		URI uri;
 		try {
-			uri = Object.class.getResource("/" + sourceDir).toURI();
+			uri = ResourceLoader.class.getResource("/" + sourceDir).toURI();
 		} catch (NullPointerException ex) {
-			logger.error(sourceDir + " directory not found in resources");
+			logger.error(sourceDir + " directory not found in resources", ex);
 			throw new RuntimeException(sourceDir + " directory not found in resources");
 		}
 
@@ -163,7 +163,7 @@ public class ResourceLoader {
 				String relativePath = file.toString().replace(sourcePathReference.path.toString(), "");
 				Path currentTargetFile = Paths.get(targetDirPath + relativePath);
 
-				logger.info(cardsJarFile + "!" + file + "  -->  " + currentTargetFile);
+				//logger.info(cardsJarFile + "!" + file + "  -->  " + currentTargetFile);
 				Files.copy(file, currentTargetFile, StandardCopyOption.REPLACE_EXISTING);
 				return FileVisitResult.CONTINUE;
 			}
