@@ -100,11 +100,11 @@ public class Population implements Serializable {
 		// swap the card if possible
 		if (replacements.size() != 0) {
 			GeneticCard toRemove = deck.cards.get(index1);
-			deck.cards.remove(index1);
-			Boolean swapped = false;
-			for (int i = 0; i < replacements.size(); i++) {
-				if (deck.canAddCardToDeck(replacements.get(i))) {
-					deck.getCards().set(index1, toSwap);
+			deck.cards.remove(toSwap);
+			boolean swapped = false;
+			for (GeneticCard replacement : replacements) {
+				if (deck.canAddCardToDeck(replacement)) {
+					deck.getCards().add(replacement);
 					swapped = true;
 					break;
 				}
