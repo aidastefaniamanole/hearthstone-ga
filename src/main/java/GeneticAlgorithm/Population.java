@@ -98,7 +98,7 @@ public class Population implements Serializable {
 				.collect(Collectors.toList());
 
 		// swap the card if possible
-		if (replacements != null) {
+		if (replacements.size() != 0) {
 			GeneticCard toRemove = deck.cards.get(index1);
 			deck.cards.remove(index1);
 			Boolean swapped = false;
