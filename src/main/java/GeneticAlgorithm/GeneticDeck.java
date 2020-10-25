@@ -59,7 +59,7 @@ public class GeneticDeck implements Serializable {
 	public int hashCode() {
 		return Objects.hash(cards, fitness, heroClass);
 	}
-
+	
 	public void checkCorrectnessAndFix() {
 		Map<String, String> optionsMap = new HashMap<>();
 
