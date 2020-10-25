@@ -1,14 +1,11 @@
 package GeneticAlgorithm;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-public class Population implements Serializable {
-	private static final long serialVersionUID = 1L;
+public class Population {
 	// [2-4]
 	private int tournamentRounds = 4;
 	private Integer populationSize;
@@ -92,26 +89,16 @@ public class Population implements Serializable {
 		int index2 = rand.nextInt(populationSize - K);
 		GeneticDeck randDeck = members.get(index2);
 
+		GeneticCard replacement;
 		// we chose +1/-1 cards so we avoid picking the same card
-		List<GeneticCard> replacements = randDeck.getCards().stream()
+		replacement = randDeck.getCards().stream()
 				.filter(x -> Math.abs(toSwap.getBaseManaCost() - x.getBaseManaCost()) == 1)
-				.collect(Collectors.toList());
+				.collect(Collectors.toList())
+				.get(0);
 
-		// swap the card if possible
-		if (replacements.size() != 0) {
-			GeneticCard toRemove = deck.cards.get(index1);
-			deck.cards.remove(toSwap);
-			boolean swapped = false;
-			for (GeneticCard replacement : replacements) {
-				if (deck.canAddCardToDeck(replacement)) {
-					deck.getCards().add(replacement);
-					swapped = true;
-					break;
-				}
-			}
-			if (!swapped) {
-				deck.cards.add(toRemove);
-			}
+		//swap the cards if possible
+		if (replacement != null) {
+			deck.getCards().set(index1, toSwap);
 		}
 	}
 

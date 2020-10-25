@@ -12,8 +12,7 @@ import org.jcodings.util.Hash;
 import java.io.Serializable;
 import java.util.*;
 
-public class GeneticDeck implements Serializable {
-	private static final long serialVersionUID = 1L;
+public class GeneticDeck {
 	public static final int deckSize = 30;
 	private static final Random rand = new Random();
 	public List<GeneticCard> cards;
