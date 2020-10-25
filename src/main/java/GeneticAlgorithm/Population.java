@@ -139,10 +139,16 @@ public class Population implements Serializable {
 		offspring2.getCards().addAll(parent1.getCards().subList(crossPoint, GeneticDeck.deckSize));
 
 		ArrayList<GeneticDeck> result = new ArrayList<>();
-		offspring1.checkCorrectnessAndFix();
-		result.add(offspring1);
-		offspring2.checkCorrectnessAndFix();
-		result.add(offspring2);
+		if (offspring1.checkCorrectnessAndFix()) {
+			result.add(offspring1);
+		} else {
+			result.add(HearthstoneSpark.generateDeck(parent1.heroClass));
+		}
+		if (offspring2.checkCorrectnessAndFix()) {
+			result.add(offspring2);
+		} else {
+			result.add(HearthstoneSpark.generateDeck(parent2.heroClass));
+		}
 
 		return result;
 	}

@@ -40,6 +40,7 @@ public class MetaStoneSim {
 
     private static final DeckFormat deckFormat;
     private static final List<Deck> decks;
+    private static final Random rand = new Random();
 
     static {
         //Define deck format
@@ -130,7 +131,8 @@ public class MetaStoneSim {
     public static PlayersGameStatistics simulate(GeneticDeck deck) {
         Deck d1 = adaptToMetaStone(deck);
         d1.setName("custom");
-        Deck d2 = decks.stream().filter(d -> d.getName().equals("Burgle Rogue")).findFirst().get();
+        //Deck d2 = decks.stream().filter(d -> d.getName().equals("Burgle Rogue")).findFirst().get();
+        Deck d2 = decks.get(rand.nextInt(decks.size()));
 
         GameConfig gc = GetGameConfig(d1, d2, deckFormat, 1, 20);
 
@@ -139,7 +141,7 @@ public class MetaStoneSim {
 
     public static PlayersGameStatistics simulate(GeneticDeck deck, int aiLevel, int simulationsCount) {
         Deck d1 = adaptToMetaStone(deck);
-        Deck d2 = decks.get(new Random().nextInt(decks.size()));
+        Deck d2 = decks.get(rand.nextInt(decks.size()));
 
         GameConfig gc = GetGameConfig(d1, d2, deckFormat, aiLevel, simulationsCount);
 
